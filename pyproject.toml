@@ -1,0 +1,53 @@
+[project]
+name = "fastapi-monolith-template"
+version = "0.1.0"
+description = "The templete which will help you to build a powerfull API"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "alembic>=1.16.1",
+    "asyncpg>=0.30.0",
+    "fastapi>=0.115.12",
+    "httpx>=0.28.1",
+    "pydantic-settings>=2.9.1",
+    "pytest>=8.3.5",
+    "redis>=6.4.0",
+    "ruff>=0.11.12",
+    "sqlalchemy>=2.0.41",
+    "uvicorn>=0.34.2",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+exclude = [
+    ".git",
+    ".venv",
+    "__pycache__",
+    "alembic/versions",
+]
+
+lint.select = [
+    "E", # pycodestyle (errors)
+    "F", # pyflakes
+    "I", # isort
+    "N", # pep8-naming
+    "UP", # pyupgrade
+    "B", # bugbear
+    "C90", # mccabe (complexity)
+]
+
+lint.ignore = [
+    "B008", # do not call function in default arg
+    "C901", # too complex
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "lf"
+skip-magic-trailing-comma = true
+
+
+[tool.ruff.lint.isort]
+split-on-trailing-comma = false

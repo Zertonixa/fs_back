@@ -7,17 +7,15 @@
 """
 
 from fastapi import FastAPI
+
 from src.api.lifespan import lifespan
-from src.core.config import cfg
 from src.apps import api_router  # основной router
+from src.core.config import cfg
+
 # from src.core.middleware import setup_middlewares
 # from src.core.exceptions import setup_exception_handlers
 
-app = FastAPI(
-    title="My FastAPI App",
-    version="1.0.0",
-    lifespan=lifespan,
-)
+app = FastAPI(title="My FastAPI App", version="1.0.0", lifespan=lifespan)
 
 # Register API
 app.include_router(api_router)

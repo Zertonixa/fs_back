@@ -1,4 +1,5 @@
-from typing import Protocol, Any
+from typing import Any, Protocol
+
 
 class CachePort(Protocol):
     async def get(self, key: str) -> Any: ...

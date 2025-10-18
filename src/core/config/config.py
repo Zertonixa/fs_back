@@ -1,6 +1,6 @@
 from datetime import timedelta, timezone
-from typing import Literal
 from pathlib import Path
+from typing import Literal
 
 from pydantic import BaseModel, Field
 from pydantic_settings import (
@@ -165,60 +165,29 @@ class RedisCommon(BaseModel):
     """
     Базовый класс для конфигураций Redis клиентов.
     """
+
     scheme: Literal["redis", "rediss"] = Field(
-        default="redis",
-        description="redis или rediss (TLS)"
+        default="redis", description="redis или rediss (TLS)"
     )
-    host: str = Field(
-        default="localhost",
-        description="Хост, на котором запускается Redis."
-    )
-    port: int = Field(
-        default=6379,
-        description="Порт, на котором запускается Redis."
-    )
-    db: int = Field(
-        default=0,
-        description="Номер базы данных."
-    )
-    username: str = Field(
-        default="admin",
-        description="Имя супер-пользователя."
-    )
-    password: str = Field(
-        default="password",
-        description="Пароль супер-пользователя."
-    )
-    decode_responses: bool = Field(
-        default=True,
-        description="Возвращает `str` вместо `bytes`"
-    )
+    host: str = Field(default="localhost", description="Хост, на котором запускается Redis.")
+    port: int = Field(default=6379, description="Порт, на котором запускается Redis.")
+    db: int = Field(default=0, description="Номер базы данных.")
+    username: str = Field(default="admin", description="Имя супер-пользователя.")
+    password: str = Field(default="password", description="Пароль супер-пользователя.")
+    decode_responses: bool = Field(default=True, description="Возвращает `str` вместо `bytes`")
     ssl_cert_reqs: Literal["none", "required"] = Field(
-        default="none",
-        description="Политика TLS сертификатов"
+        default="none", description="Политика TLS сертификатов"
     )
 
     # Pool and timeouts
-    max_connections: int = Field(
-        default=50,
-        description="Размер пулла подключений."
-    )
-    health_check_interval: int = Field(
-        default=30,
-        description="Задержка между PING'ами (в сек.)."
-    )
+    max_connections: int = Field(default=50, description="Размер пулла подключений.")
+    health_check_interval: int = Field(default=30, description="Задержка между PING'ами (в сек.).")
     socket_timeout: float = Field(
-        default=5.0,
-        description="Таймаут операции на чтение/запись (в сек.)."
+        default=5.0, description="Таймаут операции на чтение/запись (в сек.)."
     )
-    socket_connect_timeout: float = Field(
-        default=5.0,
-        description="Таймаут подключения (в сек.).")
+    socket_connect_timeout: float = Field(default=5.0, description="Таймаут подключения (в сек.).")
 
-    socket_keepalive: bool = Field(
-        default=True,
-        description="включение TCP keepalive"
-    )
+    socket_keepalive: bool = Field(default=True, description="включение TCP keepalive")
 
     @property
     def dsn(self) -> str:
@@ -242,8 +211,11 @@ class RedisCommon(BaseModel):
         # TLS switch
         if self.scheme == "rediss":
             import ssl
+
             kw["ssl"] = True
-            kw["ssl_cert_reqs"] = ssl.CERT_NONE if self.ssl_cert_reqs == "none" else ssl.CERT_REQUIRED
+            kw["ssl_cert_reqs"] = (
+                ssl.CERT_NONE if self.ssl_cert_reqs == "none" else ssl.CERT_REQUIRED
+            )
         return kw
 
 
@@ -252,6 +224,7 @@ class RedisPubSub(RedisCommon):
     Отдельный клиент Redis для броекра/pub-sub клиента.
     Обычно DB 0 или отдельный инстанс
     """
+
     db: int = Field(default=0)
 
 
@@ -260,20 +233,12 @@ class RedisCache(RedisCommon):
     Отдельный клиент Redis для кэширования данных.
     Обычно DB 1 или отдельный инстанс.
     """
+
     db: int = Field(default=1)
-    key_prefix: str = Field(
-        default="app:cache:",
-        description="Префикс ключей данных"
-    )
-    default_ttl_seconds: int = Field(
-        default=3600,
-        description="Fallback TTL for set()"
-    )
+    key_prefix: str = Field(default="app:cache:", description="Префикс ключей данных")
+    default_ttl_seconds: int = Field(default=3600, description="Fallback TTL for set()")
     # Optional negative caching
-    negative_ttl_seconds: int = Field(
-        default=60,
-        description="TTL for negative cache entries"
-    )
+    negative_ttl_seconds: int = Field(default=60, description="TTL for negative cache entries")
 
 
 class Config(BaseSettings):
@@ -294,12 +259,12 @@ class Config(BaseSettings):
 
     @classmethod
     def settings_customise_sources(
-            cls,
-            settings_cls: type[BaseSettings],
-            init_settings: PydanticBaseSettingsSource,
-            env_settings: PydanticBaseSettingsSource,
-            dotenv_settings: PydanticBaseSettingsSource,
-            file_secret_settings: PydanticBaseSettingsSource,
+        cls,
+        settings_cls: type[BaseSettings],
+        init_settings: PydanticBaseSettingsSource,
+        env_settings: PydanticBaseSettingsSource,
+        dotenv_settings: PydanticBaseSettingsSource,
+        file_secret_settings: PydanticBaseSettingsSource,
     ) -> tuple[PydanticBaseSettingsSource, ...]:
         active_sources = [method(settings_cls) for path, method in PathsSources if path.exists()]
         return EnvSettingsSource(settings_cls), *active_sources

@@ -1,5 +1,6 @@
 from typing import Protocol
 
+
 class TaskBrokerPort(Protocol):
     def enqueue(self, name: str, **payload) -> None: ...
     def schedule(self, name: str, delay_seconds: int, **payload) -> None: ...

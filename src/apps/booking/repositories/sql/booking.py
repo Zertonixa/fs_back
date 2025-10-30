@@ -47,6 +47,7 @@ class BookingRepo(IBookingRepo):
     async def find_user(self, user_id: UUID) -> list[BookingDC]:
         rows = await self.session.scalars(
             select(BookingORM).where(BookingORM.user_id == user_id)
+
         )
         return [orm_to_dc(obj) for obj in rows]
 

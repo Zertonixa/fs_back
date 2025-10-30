@@ -1,0 +1,60 @@
+[database]
+postgres_username = "postgres"
+postgres_db = "postgres"
+postgres_port = 5432
+postgres_host = "localhost"
+postgres_password = "postgres"
+echo = true
+pool_pre_ping = true
+pool_recycle = 1800
+pool_use_lifo = false
+pool_timeout = 30
+pool_size = 5
+max_overflow = 10
+
+[logging]
+level = "INFO"
+
+[app]
+host = "0.0.0.0"
+port = 8000
+workers = 1
+reload = false
+debug = false
+tz_offset_hours = 3
+proxy_headers = false
+forwared_aloow_ips = ["*"]
+
+[jwt]
+secret_key = "TewtiW123SAAWW2o91"
+algorithm = "HS256"
+expires = 60
+
+[s3]
+endpoint = "http://localhost:9000"
+access_key = "minioadmin"
+secret_key = "minioadmin"
+bucket = "bucket"
+region = "us-east-1"
+use_ssl = false
+addressing_style = "path"
+
+[redis_pubsub]
+scheme = "redis"
+host = "redis"
+port = 6379
+db = 0
+decode_responses = true
+
+[redis_cache]
+scheme = "redis"
+host = "redis"
+port = 6379
+db = 1
+decode_responses = true
+key_prefix = "app:cache:"
+default_ttl_seconds = 3600
+negative_ttl_seconds = 60
+
+[docs]
+allowed_ips = ["123.123.123.123", "124.124.124.124", "125.125.125.125"]

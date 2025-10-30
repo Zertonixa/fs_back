@@ -30,15 +30,23 @@ class Database(BaseModel):
     """
 
     # ── Основные реквизиты подключения ──────────────────────────────────────────
-    postgres_username: str = Field(default="postgres", description=("Имя пользователя PostgreSQL."))
+    postgres_username: str = Field(
+        default="postgres", description=("Имя пользователя PostgreSQL.")
+    )
     postgres_db: str = Field(default="postgres", description=("Название базы/схемы."))
-    postgres_port: int = Field(default=5432, description=("Порт, на котором слушает PostgreSQL."))
-    postgres_host: str = Field(default="localhost", description=("Хост или IP сервера PostgreSQL."))
+    postgres_port: int = Field(
+        default=5432, description=("Порт, на котором слушает PostgreSQL.")
+    )
+    postgres_host: str = Field(
+        default="localhost", description=("Хост или IP сервера PostgreSQL.")
+    )
     postgres_password: str = Field(
         default="postgres", description=("Пароль указанного пользователя.")
     )
     # ── Логирование ─────────────────────────────────────────────────────────────
-    echo: bool = Field(default=False, description=("Включить подробный SQL-лог (`echo=True`)."))
+    echo: bool = Field(
+        default=False, description=("Включить подробный SQL-лог (`echo=True`).")
+    )
     # ── Параметры пула соединений ───────────────────────────────────────────────
     pool_pre_ping: bool = Field(
         default=True,
@@ -67,7 +75,9 @@ class Database(BaseModel):
             "(`pool_size + max_overflow`). Затем бросается `TimeoutError`."
         ),
     )
-    pool_size: int = Field(default=5, description=("Базовое количество постоянных соединений."))
+    pool_size: int = Field(
+        default=5, description=("Базовое количество постоянных соединений.")
+    )
     max_overflow: int = Field(
         default=10,
         description=(
@@ -81,20 +91,32 @@ class Database(BaseModel):
         return f"postgresql+asyncpg://{self.postgres_username}:{self.postgres_password}@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
 
 
+class JWT(BaseModel):
+    secret_key: str = Field(default="secret", description="Your secret key")
+    algorithm: str = Field(default="HS256", description="Algorithm to jwt")
+    expires: int = Field(default=60, description="Time to expire your access_token")
+
+
 class S3(BaseModel):
-    endpoint: str = Field(default="http://minio:9000", description="URL эндпоинта MinIO/S3.")
+    endpoint: str = Field(
+        default="http://minio:9000", description="URL эндпоинта MinIO/S3."
+    )
     access_key: str = Field(
         default="supersecretkey", description="Ключ доступа (AWS_ACCESS_KEY_ID)."
     )
     secret_key: str = Field(
         default="supersecretkey", description="Секретный ключ (AWS_SECRET_ACCESS_KEY)."
     )
-    bucket: str = Field(default="katana", description="Название бакета для хранения файлов.")
+    bucket: str = Field(
+        default="katana", description="Название бакета для хранения файлов."
+    )
     region: str = Field(
         default="us-east-1",
         description="Регион (для MinIO можно оставить фиктивное значение, например us-east-1).",
     )
-    use_ssl: bool = Field(default=True, description="Использовать ли SSL для подключения.")
+    use_ssl: bool = Field(
+        default=True, description="Использовать ли SSL для подключения."
+    )
     addressing_style: str = Field(
         default="path",
         description="Стиль обращения к бакету (path или virtual). Для MinIO обычно path.",
@@ -123,11 +145,13 @@ class App(BaseModel):
         description="Хост, на котором запускается приложение (по умолчанию — на всех интерфейсах).",
     )
     port: int = Field(
-        default=8000, description="Порт, на котором приложение слушает входящие соединения."
+        default=8000,
+        description="Порт, на котором приложение слушает входящие соединения.",
     )
     # ── Производительность ─────────────────────────────────────────────────────
     workers: int = Field(
-        default=1, description="Количество воркеров (процессов), обрабатывающих запросы."
+        default=1,
+        description="Количество воркеров (процессов), обрабатывающих запросы.",
     )
     reload: bool = Field(
         default=False,
@@ -141,7 +165,8 @@ class App(BaseModel):
     )
     # ── Часовой пояс ───────────────────────────────────────────────────────────
     tz_offset_hours: int = Field(
-        default=3, description="Смещение по времени в часах от UTC (например, `+3` для Москвы)."
+        default=3,
+        description="Смещение по времени в часах от UTC (например, `+3` для Москвы).",
     )
     proxy_headers: bool = Field(
         default=False, description="Включайте при запуске на production сервере"
@@ -169,23 +194,31 @@ class RedisCommon(BaseModel):
     scheme: Literal["redis", "rediss"] = Field(
         default="redis", description="redis или rediss (TLS)"
     )
-    host: str = Field(default="localhost", description="Хост, на котором запускается Redis.")
+    host: str = Field(
+        default="localhost", description="Хост, на котором запускается Redis."
+    )
     port: int = Field(default=6379, description="Порт, на котором запускается Redis.")
     db: int = Field(default=0, description="Номер базы данных.")
     username: str = Field(default="admin", description="Имя супер-пользователя.")
     password: str = Field(default="password", description="Пароль супер-пользователя.")
-    decode_responses: bool = Field(default=True, description="Возвращает `str` вместо `bytes`")
+    decode_responses: bool = Field(
+        default=True, description="Возвращает `str` вместо `bytes`"
+    )
     ssl_cert_reqs: Literal["none", "required"] = Field(
         default="none", description="Политика TLS сертификатов"
     )
 
     # Pool and timeouts
     max_connections: int = Field(default=50, description="Размер пулла подключений.")
-    health_check_interval: int = Field(default=30, description="Задержка между PING'ами (в сек.).")
+    health_check_interval: int = Field(
+        default=30, description="Задержка между PING'ами (в сек.)."
+    )
     socket_timeout: float = Field(
         default=5.0, description="Таймаут операции на чтение/запись (в сек.)."
     )
-    socket_connect_timeout: float = Field(default=5.0, description="Таймаут подключения (в сек.).")
+    socket_connect_timeout: float = Field(
+        default=5.0, description="Таймаут подключения (в сек.)."
+    )
 
     socket_keepalive: bool = Field(default=True, description="включение TCP keepalive")
 
@@ -238,7 +271,9 @@ class RedisCache(RedisCommon):
     key_prefix: str = Field(default="app:cache:", description="Префикс ключей данных")
     default_ttl_seconds: int = Field(default=3600, description="Fallback TTL for set()")
     # Optional negative caching
-    negative_ttl_seconds: int = Field(default=60, description="TTL for negative cache entries")
+    negative_ttl_seconds: int = Field(
+        default=60, description="TTL for negative cache entries"
+    )
 
 
 class Config(BaseSettings):
@@ -250,6 +285,7 @@ class Config(BaseSettings):
     )
 
     app: App = App()
+    jwt: JWT = JWT()
     database: Database = Database()
     logging: Logging = Logging()
     docs: Docs = Docs()
@@ -266,12 +302,16 @@ class Config(BaseSettings):
         dotenv_settings: PydanticBaseSettingsSource,
         file_secret_settings: PydanticBaseSettingsSource,
     ) -> tuple[PydanticBaseSettingsSource, ...]:
-        active_sources = [method(settings_cls) for path, method in PathsSources if path.exists()]
+        active_sources = [
+            method(settings_cls) for path, method in PathsSources if path.exists()
+        ]
         return EnvSettingsSource(settings_cls), *active_sources
 
     @property
     def tz(self) -> timezone:
-        return timezone(offset=timedelta(hours=self.app.tz_offset_hours), name="Europe/Moscow")
+        return timezone(
+            offset=timedelta(hours=self.app.tz_offset_hours), name="Europe/Moscow"
+        )
 
 
 settings = Config()

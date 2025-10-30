@@ -29,7 +29,7 @@ def main():
     import uvicorn
 
     uvicorn.run(
-        app="src:app",
+        "src.api.main:app",
         host=cfg.app.host,
         port=cfg.app.port,
         reload=cfg.app.reload,

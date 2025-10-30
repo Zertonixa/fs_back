@@ -11,8 +11,8 @@ from alembic import context
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
+from src.core import Base
 from src.core.config import cfg
-from src.core.db.base import Base
 
 config = context.config
 
@@ -41,7 +41,9 @@ def do_run_migrations(connection: Connection) -> None:
 
 
 async def run_async_migrations() -> None:
-    connectable = create_async_engine(cfg.database.async_database_url, poolclass=pool.NullPool)
+    connectable = create_async_engine(
+        cfg.database.async_database_url, poolclass=pool.NullPool
+    )
 
     async with connectable.connect() as connection:
         await connection.run_sync(do_run_migrations)

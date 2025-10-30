@@ -11,12 +11,10 @@ from ..interfaces import IBookingRepo
 
 
 class BookingRepo(IBookingRepo):
-
     def __init__(self, session: AsyncSession):
         self.session = session
 
     async def create(self, booking: BookingType) -> Booking:
-
         orm_obj = Booking(
             user_id=booking.user_id,
             machine_id=booking.machine_id,
@@ -31,9 +29,7 @@ class BookingRepo(IBookingRepo):
     async def get_by_id(self, booking_id):
         return await super().get_by_id(booking_id)
 
-    async def find_overlaps(
-        self, starts_time: datetime, ends_time: datetime
-    ) -> list[UUID]:
+    async def find_overlaps(self, starts_time: datetime, ends_time: datetime) -> list[UUID]:
         stmt = select(Booking.machine_id).where(
             and_(Booking.starts_at < starts_time, Booking.ends_at > ends_time)
         )

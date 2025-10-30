@@ -7,15 +7,12 @@ from ..schemas.dataclasses.auth import TgUserPayload
 
 
 class AuthService:
-
     def __init__(self, user_repo: IUserRepo, bot_token: str, jwt_issuer):
-
         self.user_repo = user_repo
         self.bot_token = bot_token
         self.jwt_issuer = jwt_issuer
 
     async def login_with_telegram(self, init_data_raw: str) -> tuple[str, dict]:
-
         tg_user = self._verify_init_data_and_extract_user(init_data_raw)
 
         user = await self.user_repo.upsert_by_telegram(tg_user)
@@ -30,7 +27,6 @@ class AuthService:
         return token, public_user
 
     def _verify_init_data_and_extract_user(self, init_data: str) -> TgUserPayload:
-
         parsed = urllib.parse.parse_qsl(init_data, keep_blank_values=True)
         data = dict(parsed)
 
@@ -57,7 +53,6 @@ class AuthService:
 
         user_json = json.loads(user_raw)
         payload = TgUserPayload(
-            telegram_id=int(user_json["id"]),
-            username=user_json.get("username"),
+            telegram_id=int(user_json["id"]), username=user_json.get("username")
         )
         return payload

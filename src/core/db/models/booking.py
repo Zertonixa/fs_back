@@ -21,21 +21,14 @@ class BookingType(enum.StrEnum):
 
 
 class Booking(Base):
-
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
 
     user_id: Mapped[int] = mapped_column(
-        BigInteger,
-        ForeignKey("users.id", ondelete="CASCADE"),
-        index=True,
-        nullable=False,
+        BigInteger, ForeignKey("users.id", ondelete="CASCADE"), index=True, nullable=False
     )
 
     machine_id: Mapped[str | None] = mapped_column(
-        String(64),
-        ForeignKey("machines.id", ondelete="SET NULL"),
-        index=True,
-        nullable=True,
+        String(64), ForeignKey("machines.id", ondelete="SET NULL"), index=True, nullable=True
     )
 
     status: Mapped[BookingStatus] = mapped_column(
@@ -45,12 +38,9 @@ class Booking(Base):
     )
 
     type: Mapped[BookingType] = mapped_column(
-        PgEnum(BookingType, name="booking_type", create_type=True),
-        nullable=False,
+        PgEnum(BookingType, name="booking_type", create_type=True), nullable=False
     )
 
-    starts_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now()
-    )
+    starts_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     ends_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)

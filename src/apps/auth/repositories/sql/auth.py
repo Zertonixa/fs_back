@@ -1,4 +1,3 @@
-
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import func
@@ -10,7 +9,6 @@ from ..interfaces import IUserRepo
 
 
 class UserRepo(IUserRepo):
-
     def __init__(self, session: AsyncSession):
         self.session = session
 

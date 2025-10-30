@@ -15,15 +15,12 @@ class Type(enum.StrEnum):
 
 
 class Slot(Base):
-
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
-    PgEnum(Type, name="booking_status", create_type=True),
+    (PgEnum(Type, name="booking_status", create_type=True),)
     floor: Mapped[int] = mapped_column(Integer)
     place: Mapped[int] = mapped_column(BigInteger)
     status: Mapped[bool] = mapped_column(Boolean)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )

@@ -10,6 +10,4 @@ from src.core.security import create_access_token
 
 def get_auth_service(uow: UnitOfWork = Depends(get_uow)) -> AuthService:
     repo = IUserRepo(uow.session)
-    return AuthService(
-        user_repo=repo, bot_token=settings.BOT_TOKEN, jwt_issuer=create_access_token
-    )
+    return AuthService(user_repo=repo, bot_token=settings.BOT_TOKEN, jwt_issuer=create_access_token)

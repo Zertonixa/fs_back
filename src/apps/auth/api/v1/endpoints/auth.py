@@ -15,9 +15,7 @@ class Auth:
         return self.__router
 
     @__router.post(path="/login", summary="Auth", status_code=status.HTTP_200_OK)
-    async def login(
-        payload: TelegramAuthIn, auth: AuthService = Depends(get_auth_service)
-    ):
+    async def login(payload: TelegramAuthIn, auth: AuthService = Depends(get_auth_service)):
         return TokenOut(access_token=auth.login_with_telegram(payload.init_data))
 
     @__router.get(path="/me", summary="Auth", status_code=status.HTTP_200_OK)

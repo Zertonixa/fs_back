@@ -15,9 +15,7 @@ class Notify:
     async def create_notify(notify: Notify) -> Notify:
         return "ok"
 
-    @__router.delete(
-        path="/bookings/{booking_id}", status_code=status.HTTP_204_NO_CONTENT
-    )
+    @__router.delete(path="/bookings/{booking_id}", status_code=status.HTTP_204_NO_CONTENT)
     async def delete_notify(booking_id: int) -> None:
         return None
 

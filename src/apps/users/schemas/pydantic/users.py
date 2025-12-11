@@ -7,10 +7,11 @@ from pydantic import BaseModel
 class User(BaseModel):
     id: UUID
     telegram_id: int
-    username: str
+    username: str | None
     created_at: datetime
-    ends_at: datetime
+    updated_at: datetime
+    is_banned: bool
+    is_admin: bool
 
-
-class UserDelete(BaseModel):
-    id: UUID
+    class Config:
+        from_attributes = True

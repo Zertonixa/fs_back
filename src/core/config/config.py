@@ -1,4 +1,3 @@
-from datetime import timedelta, timezone
 from pathlib import Path
 from typing import Literal
 
@@ -12,7 +11,7 @@ from pydantic_settings import (
     TomlConfigSettingsSource,
 )
 
-BASE_DIR = Path(__file__).parent.parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
 TOML_SETTINGS_PATH = BASE_DIR / "config.toml"
 JSON_SETTINGS_PATH = BASE_DIR / "config.json"
 ENV_PATH = BASE_DIR / ".env"
@@ -90,11 +89,30 @@ class Database(BaseModel):
     def async_database_url(self) -> str:
         return f"postgresql+asyncpg://{self.postgres_username}:{self.postgres_password}@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
 
+    @property
+    def sync_database_url(self) -> str:
+        return (
+            f"postgresql+psycopg2://{self.postgres_username}:"
+            f"{self.postgres_password}@{self.postgres_host}:"
+            f"{self.postgres_port}/{self.postgres_db}"
+        )
+
 
 class JWT(BaseModel):
     secret_key: str = Field(default="secret", description="Your secret key")
     algorithm: str = Field(default="HS256", description="Algorithm to jwt")
-    expires: int = Field(default=60, description="Time to expire your access_token")
+    expires: int = Field(
+        default=60 * 60 * 24, description="Time to expire your access_token"
+    )
+
+
+class RedisNotify(BaseModel):
+
+    key_prefix: str = Field(default="app:notify:", description="Префикс ключей данных")
+    default_ttl_seconds: int = Field(default=3600, description="Fallback TTL for set()")
+    negative_ttl_seconds: int = Field(
+        default=60, description="TTL for negative cache entries"
+    )
 
 
 class S3(BaseModel):
@@ -184,6 +202,10 @@ class Docs(BaseModel):
     allowed_ips: list[str] = Field(
         default=[], description="Список IP-адресов, которым разрешён доступ к `/docs`."
     )
+
+
+class Bot(BaseModel):
+    bot_token: str = Field(default="token", description="Your secret key")
 
 
 class RedisCommon(BaseModel):
@@ -280,12 +302,13 @@ class Config(BaseSettings):
     model_config = SettingsConfigDict(
         extra="ignore",
         env_file=ENV_PATH,
-        json_file=JSON_SETTINGS_PATH,
         toml_file=TOML_SETTINGS_PATH,
     )
 
     app: App = App()
     jwt: JWT = JWT()
+    bot: Bot = Bot()
+    redis_notify: RedisNotify = RedisNotify()
     database: Database = Database()
     logging: Logging = Logging()
     docs: Docs = Docs()
@@ -296,21 +319,19 @@ class Config(BaseSettings):
     @classmethod
     def settings_customise_sources(
         cls,
-        settings_cls: type[BaseSettings],
-        init_settings: PydanticBaseSettingsSource,
-        env_settings: PydanticBaseSettingsSource,
-        dotenv_settings: PydanticBaseSettingsSource,
-        file_secret_settings: PydanticBaseSettingsSource,
-    ) -> tuple[PydanticBaseSettingsSource, ...]:
-        active_sources = [
-            method(settings_cls) for path, method in PathsSources if path.exists()
-        ]
-        return EnvSettingsSource(settings_cls), *active_sources
-
-    @property
-    def tz(self) -> timezone:
-        return timezone(
-            offset=timedelta(hours=self.app.tz_offset_hours), name="Europe/Moscow"
+        settings_cls,
+        init_settings,
+        env_settings,
+        dotenv_settings,
+        file_secret_settings,
+    ):
+        return (
+            init_settings,
+            JsonConfigSettingsSource(settings_cls),
+            TomlConfigSettingsSource(settings_cls),
+            env_settings,
+            dotenv_settings,
+            file_secret_settings,
         )
 
 

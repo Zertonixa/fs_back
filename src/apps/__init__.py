@@ -1,19 +1,17 @@
 from fastapi import APIRouter
 
 from .admin import admin_router_v1
-from .auth import hint_router_v1
-from .booking import hint_router_v1 as booking
-from .devices import devices_router_v1
-from .notify import notify_router_v1
+from .auth import auth_router_v1
+from .booking import booking_router_v1
+from .slots import slots_router_v1
 from .users import user_router_v1
 
 routers: dict[str, APIRouter] = {
-    "Auth": hint_router_v1.get_router,
-    "Booking": booking.get_router,
-    "Devices": devices_router_v1.get_router,
-    "Users": user_router_v1.get_router,
-    "Admin": admin_router_v1.get_router,
-    "Notify": notify_router_v1.get_router,
+    "Auth": auth_router_v1,
+    "Booking": booking_router_v1,
+    "Devices": slots_router_v1,
+    "Users": user_router_v1,
+    "Admin": admin_router_v1,
 }
 
 api_router = APIRouter(prefix="/api/v1")

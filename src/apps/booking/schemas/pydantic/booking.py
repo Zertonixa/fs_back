@@ -2,16 +2,18 @@ from datetime import datetime
 from typing import Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict
 
 BookingStatus = Literal["NEW", "CANCELLED", "DONE"]
 BookingType = Literal["WASHING", "DRYING"]
 
 
 class BookingCreate(BaseModel):
-    machine_id: UUID
+    type: BookingType
     starts_at: datetime
     ends_at: datetime
+    floor: int
+    slot_ids: list[UUID]
 
 
 class BookingRead(BaseModel):
@@ -19,12 +21,17 @@ class BookingRead(BaseModel):
     id: UUID
     user_id: UUID
     type: BookingType
-    machine_id: UUID
+    slot_ids: list[UUID]
+    slot_places: list[int]
+    floor: int | None
     starts_at: datetime
     ends_at: datetime
     status: BookingStatus = "NEW"
 
 
 class BookingCancel(BaseModel):
-    reason: str | None = Field(default=None, max_length=200)
     slot_id: int
+
+
+class BookingTime(BaseModel):
+    time: datetime

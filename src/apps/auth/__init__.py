@@ -1,3 +1,3 @@
-from .api import hint_router_v1
+from .api import auth_router_v1
 
-__all__ = ["hint_router_v1"]
+__all__ = ["auth_router_v1"]

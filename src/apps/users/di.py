@@ -7,6 +7,5 @@ from src.core.dependencies.db import get_uow
 
 
 def get_users_service(uow: UoW = Depends(get_uow)) -> UserService:
-
     user_repo = UserRepo(uow.session)
     return UserService(repo=user_repo, uow=uow)

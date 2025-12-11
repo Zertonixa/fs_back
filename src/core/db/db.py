@@ -29,8 +29,5 @@ sync_engine = create_engine(
 )
 
 SessionLocal = sessionmaker(
-    bind=sync_engine,
-    autocommit=False,
-    autoflush=False,
-    expire_on_commit=False,
+    bind=sync_engine, autocommit=False, autoflush=False, expire_on_commit=False
 )

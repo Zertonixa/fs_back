@@ -18,10 +18,5 @@ def orm_to_dc(orm: SlotORM) -> SlotDC:
 
 def dc_to_orm(dc: SlotDC) -> SlotORM:
     return SlotORM(
-        type=dc.type,
-        floor=dc.floor,
-        place=dc.place,
-        cso=dc.cso,
-        row=dc.row,
-        status=dc.status,
+        type=dc.type, floor=dc.floor, place=dc.place, cso=dc.cso, row=dc.row, status=dc.status
     )

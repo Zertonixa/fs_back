@@ -14,11 +14,7 @@ class IAdminUserRepo(ABC):
 
     @abstractmethod
     async def update_user(
-        self,
-        user_id: UUID,
-        *,
-        username: str | None = None,
-        is_banned: bool | None = None,
+        self, user_id: UUID, *, username: str | None = None, is_banned: bool | None = None
     ) -> Users: ...
 
     @abstractmethod

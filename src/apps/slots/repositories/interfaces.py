@@ -9,10 +9,7 @@ from ..schemas.dataclasses.slots import Slot
 class ISlotRepo(ABC):
     @abstractmethod
     async def get_all(
-        self,
-        type_: SlotType | None = None,
-        floor_: int | None = None,
-        cso_: int | None = None,
+        self, type_: SlotType | None = None, floor_: int | None = None, cso_: int | None = None
     ) -> list[Slot]: ...
 
     @abstractmethod
@@ -29,10 +26,5 @@ class ISlotRepo(ABC):
 
     @abstractmethod
     async def get_by_params(
-        self,
-        type_: SlotType,
-        floor_: int,
-        cso_: int,
-        row_: int,
-        place_: int,
+        self, type_: SlotType, floor_: int, cso_: int, row_: int, place_: int
     ) -> Slot | None: ...

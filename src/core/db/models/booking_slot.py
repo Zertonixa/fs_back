@@ -12,19 +12,12 @@ if TYPE_CHECKING:
 
 
 class BookingSlots(Base):
-
     booking_id: Mapped[UUID] = mapped_column(
-        ForeignKey("booking.id", ondelete="CASCADE"),
-        primary_key=True,
+        ForeignKey("booking.id", ondelete="CASCADE"), primary_key=True
     )
     slot_id: Mapped[UUID] = mapped_column(
-        ForeignKey("slot.id", ondelete="CASCADE"),
-        primary_key=True,
+        ForeignKey("slot.id", ondelete="CASCADE"), primary_key=True
     )
 
-    booking: Mapped["Booking"] = relationship(
-        back_populates="booking_slots",
-    )
-    slot: Mapped["Slot"] = relationship(
-        back_populates="booking_slots",
-    )
+    booking: Mapped["Booking"] = relationship(back_populates="booking_slots")
+    slot: Mapped["Slot"] = relationship(back_populates="booking_slots")

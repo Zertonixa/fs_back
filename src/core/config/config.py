@@ -91,18 +91,13 @@ class Database(BaseModel):
 class JWT(BaseModel):
     secret_key: str = Field(default="secret", description="Your secret key")
     algorithm: str = Field(default="HS256", description="Algorithm to jwt")
-    expires: int = Field(
-        default=60 * 60 * 24, description="Time to expire your access_token"
-    )
+    expires: int = Field(default=60 * 60 * 24, description="Time to expire your access_token")
 
 
 class RedisNotify(BaseModel):
-
     key_prefix: str = Field(default="app:notify:", description="Префикс ключей данных")
     default_ttl_seconds: int = Field(default=3600, description="Fallback TTL for set()")
-    negative_ttl_seconds: int = Field(
-        default=60, description="TTL for negative cache entries"
-    )
+    negative_ttl_seconds: int = Field(default=60, description="TTL for negative cache entries")
 
 
 class S3(BaseModel):
@@ -271,9 +266,7 @@ class RedisCache(RedisCommon):
 
 class Config(BaseSettings):
     model_config = SettingsConfigDict(
-        extra="ignore",
-        env_file=ENV_PATH,
-        toml_file=TOML_SETTINGS_PATH,
+        extra="ignore", env_file=ENV_PATH, toml_file=TOML_SETTINGS_PATH
     )
 
     app: App = App()
@@ -289,12 +282,7 @@ class Config(BaseSettings):
 
     @classmethod
     def settings_customise_sources(
-        cls,
-        settings_cls,
-        init_settings,
-        env_settings,
-        dotenv_settings,
-        file_secret_settings,
+        cls, settings_cls, init_settings, env_settings, dotenv_settings, file_secret_settings
     ):
         return (
             init_settings,

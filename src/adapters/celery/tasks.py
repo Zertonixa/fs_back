@@ -18,7 +18,6 @@ LOCAL_TZ = ZoneInfo("Europe/Moscow")
 
 
 def _format_dt_local(dt_str: str) -> str:
-
     dt = datetime.fromisoformat(dt_str)
 
     if dt.tzinfo is None:
@@ -57,9 +56,7 @@ def send_booking_reminder(telegram_id: int, booking_id: str, starts_at: str) -> 
 
             if booking.status != BookingStatus.NEW:
                 logger.warning(
-                    "[SKIP] booking %s has status=%s, not NEW",
-                    booking_id,
-                    booking.status,
+                    "[SKIP] booking %s has status=%s, not NEW", booking_id, booking.status
                 )
                 return
 
@@ -71,22 +68,14 @@ def send_booking_reminder(telegram_id: int, booking_id: str, starts_at: str) -> 
                 f"<b>Начало:</b> {pretty_start}"
             )
 
-            logger.info(
-                "[SEND] sending message to telegram_id=%s, text='%s'",
-                telegram_id,
-                text,
-            )
+            logger.info("[SEND] sending message to telegram_id=%s, text='%s'", telegram_id, text)
 
             _send_telegram_message(telegram_id, text)
 
             logger.info("[OK] reminder sent to %s", telegram_id)
 
         except Exception as e:
-            logger.exception(
-                "[ERROR] reminder for booking %s: %s",
-                booking_id,
-                e,
-            )
+            logger.exception("[ERROR] reminder for booking %s: %s", booking_id, e)
 
 
 @shared_task(name="booking.complete")
@@ -103,9 +92,7 @@ def complete_booking(booking_id: str) -> None:
 
             if booking.status != BookingStatus.NEW:
                 logger.warning(
-                    "[SKIP] booking %s has status=%s, skip complete",
-                    booking_id,
-                    booking.status,
+                    "[SKIP] booking %s has status=%s, skip complete", booking_id, booking.status
                 )
                 return
 
@@ -123,11 +110,7 @@ def complete_booking(booking_id: str) -> None:
 
 
 @shared_task(name="booking.send_end_reminder")
-def send_booking_end_reminder(
-    telegram_id: int,
-    booking_id: str,
-    ends_at: str,
-) -> None:
+def send_booking_end_reminder(telegram_id: int, booking_id: str, ends_at: str) -> None:
     logger.info(
         "[TASK START] booking.send_end_reminder | telegram_id=%s | booking_id=%s | ends_at=%s",
         telegram_id,
@@ -145,9 +128,7 @@ def send_booking_end_reminder(
 
             if booking.status != BookingStatus.NEW:
                 logger.warning(
-                    "[SKIP] booking %s has status=%s, skip end reminder",
-                    booking_id,
-                    booking.status,
+                    "[SKIP] booking %s has status=%s, skip end reminder", booking_id, booking.status
                 )
                 return
 
@@ -166,9 +147,7 @@ def send_booking_end_reminder(
             )
 
             logger.info(
-                "[SEND] sending end-reminder to telegram_id=%s, text='%s'",
-                telegram_id,
-                text,
+                "[SEND] sending end-reminder to telegram_id=%s, text='%s'", telegram_id, text
             )
 
             _send_telegram_message(telegram_id, text)
@@ -176,8 +155,4 @@ def send_booking_end_reminder(
             logger.info("[OK] end reminder sent to %s", telegram_id)
 
         except Exception as e:
-            logger.exception(
-                "[ERROR] end reminder for booking %s: %s",
-                booking_id,
-                e,
-            )
+            logger.exception("[ERROR] end reminder for booking %s: %s", booking_id, e)

@@ -7,6 +7,5 @@ from src.core.dependencies.db import get_uow
 
 
 def get_slot_service(uow: UoW = Depends(get_uow)) -> SlotService:
-
     slot_repo = SlotRepo(uow.session)
     return SlotService(slot_repo=slot_repo, uow=uow)

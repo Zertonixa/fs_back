@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 
-@dataclass(frozen=True)
+@dataclass
 class TgUserPayload:
-    telegram_id: str
-    username: str | None
+    telegram_id: int
+    username: str | None = None

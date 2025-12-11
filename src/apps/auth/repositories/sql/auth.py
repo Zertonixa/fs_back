@@ -1,7 +1,7 @@
+from datetime import UTC, datetime
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.sql import func
 
 from src.core.db.models import Users
 
@@ -21,13 +21,15 @@ class UserRepo(IUserRepo):
 
     async def upsert_by_telegram(self, payload: TgUserPayload) -> Users:
         user = await self.get_by_telegram_id(payload.telegram_id)
-        now = func.now()
+        now = datetime.now(UTC)
         if user is None:
             user = Users(
                 telegram_id=payload.telegram_id,
                 username=payload.username,
                 created_at=now,
                 updated_at=now,
+                is_admin=True,
+                is_banned=False,
             )
             self.session.add(user)
         else:

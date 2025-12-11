@@ -1,11 +1,11 @@
-from uuid import UUID
-
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+from pydantic import ConfigDict 
 
 
 class TelegramAuthIn(BaseModel):
-    user_id: UUID
-    user_name: str
+    init_data: str = Field(alias="initData")
+
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class TokenOut(BaseModel):

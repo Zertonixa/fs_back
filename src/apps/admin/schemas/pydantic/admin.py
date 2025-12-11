@@ -4,13 +4,15 @@ from uuid import UUID
 from pydantic import BaseModel
 
 
-class User(BaseModel):
+class AdminUser(BaseModel):
     id: UUID
     telegram_id: int
-    username: str
+    username: str | None
+    is_banned: bool
     created_at: datetime
-    ends_at: datetime
+    updated_at: datetime
 
 
-class UserDelete(BaseModel):
-    id: UUID
+class AdminUserUpdate(BaseModel):
+    username: str | None = None
+    is_banned: bool | None = None

@@ -1,9 +1,14 @@
+import uuid
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
+from fastapi import HTTPException, Request, status
+from fastapi.security import HTTPBearer
 from jose import jwt
 
 from src.core.config.config import settings
+
+bearer_scheme = HTTPBearer(auto_error=False)
 
 SECRET_KEY = settings.jwt.secret_key
 ALGORITHM = settings.jwt.algorithm
@@ -36,6 +41,23 @@ def get_user_id_from_payload(payload: dict[str, Any]) -> int:
     if sub is None:
         raise ValueError("missing 'sub' in token")
     try:
-        return int(sub)
+        return uuid.UUID(sub)
     except ValueError as e:
         raise ValueError("invalid 'sub' type") from e
+
+
+async def get_current_payload(request: Request) -> dict[str, Any]:
+    token = request.cookies.get("access_token")
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated (no cookie)",
+        )
+    try:
+        payload = decode_token(token)
+        return payload
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token",
+        )

@@ -1,28 +1,39 @@
-from fastapi import APIRouter, Depends, status
 
-from src.core.dependencies import get_auth_service
-from src.core.security import get_user_id_from_payload
+from fastapi import APIRouter, Depends, Response, status
 
+from src.core.db.models import Users
+from src.core.dependencies.user import get_current_user
+from src.core.security.cookie import set_auth_cookie
+
+from ....di import get_auth_service
 from ....schemas.pydantic.auth import TelegramAuthIn, TokenOut, UserOut
 from ....services import AuthService
 
-
-class Auth:
-    __router: APIRouter = APIRouter(prefix="/auth")
-
-    @property
-    def get_router(self):
-        return self.__router
-
-    @__router.post(path="/login", summary="Auth", status_code=status.HTTP_200_OK)
-    async def login(
-        payload: TelegramAuthIn, auth: AuthService = Depends(get_auth_service)
-    ):
-        return TokenOut(access_token=auth.login_with_telegram(payload.init_data))
-
-    @__router.get(path="/me", summary="Auth", status_code=status.HTTP_200_OK)
-    async def me(user=Depends(get_user_id_from_payload)):
-        return UserOut(user)
+router = APIRouter(prefix="/auth")
 
 
-auth = Auth()
+@router.post(
+    "/login",
+    response_model=TokenOut,
+    status_code=status.HTTP_200_OK,
+    summary="Auth with Telegram",
+)
+async def login(
+    payload: TelegramAuthIn,
+    response: Response,
+    auth: AuthService = Depends(get_auth_service),
+) -> TokenOut:
+    access_token, user = await auth.login_with_telegram(payload.initData)
+    set_auth_cookie(response, access_token)
+    return TokenOut(access_token=access_token)
+
+
+@router.get("/me", response_model=UserOut)
+async def me(
+    user: Users = Depends(get_current_user),
+) -> UserOut:
+    return UserOut(
+        id=str(user.id),
+        telegram_id=user.telegram_id,
+        username=user.username,
+    )

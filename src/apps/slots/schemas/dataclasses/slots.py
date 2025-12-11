@@ -1,17 +1,18 @@
+from dataclasses import dataclass
 from datetime import datetime
-from typing import Literal
 from uuid import UUID
 
-from pydantic import BaseModel
-
-SlotType = Literal["WASHING", "DRYING"]
+from src.core.db.models.slot import Type as SlotType
 
 
-class Device(BaseModel):
+@dataclass
+class Slot:
     id: UUID
     type: SlotType
     floor: int
+    row: int
     place: int
+    cso: int
     status: bool
     created_at: datetime
     updated_at: datetime

@@ -21,10 +21,7 @@ class Container:
 
 
 async def build_container(
-    storage: FileStoragePort,
-    cache: CachePort,
-    pubsub: PubSubPort,
-    broker: TaskBrokerPort,
+    storage: FileStoragePort, cache: CachePort, pubsub: PubSubPort, broker: TaskBrokerPort
 ) -> Container:
     """
     Необходимо прописать логику инициализации сервисов из входящих параметров.

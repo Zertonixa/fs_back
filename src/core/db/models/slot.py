@@ -20,7 +20,6 @@ class Type(enum.StrEnum):
 
 
 class Slot(Base):
-
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     type: Mapped[Type] = mapped_column(
         PgEnum(Type, name="slot_type", create_type=True),
@@ -31,9 +30,7 @@ class Slot(Base):
     row: Mapped[int] = mapped_column(Integer)
     place: Mapped[int] = mapped_column(Integer)
     status: Mapped[bool] = mapped_column(Boolean)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )

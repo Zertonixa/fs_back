@@ -11,7 +11,6 @@ from ....services import AuthService
 
 router = APIRouter(prefix="/auth")
 
-
 @router.post(
     "/login",
     response_model=TokenOut,

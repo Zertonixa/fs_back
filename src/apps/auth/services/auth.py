@@ -22,7 +22,6 @@ class AuthService:
         self.uow = uow
 
     async def login_with_telegram(self, init_data_raw: str) -> tuple[str, dict]:
-
         tg_user = self._verify_init_data_and_extract_user(init_data_raw)
 
         async with self.uow.transaction():
@@ -47,7 +46,6 @@ class AuthService:
         return token, public_user
 
     def _verify_init_data_and_extract_user(self, init_data: str) -> TgUserPayload:
-
         parsed = urllib.parse.parse_qsl(init_data, keep_blank_values=True)
         data = dict(parsed)
 

@@ -26,10 +26,7 @@ class BookingService:
     async def _get_or_404(self, booking_id: UUID) -> Booking:
         booking = await self.booking_repo.get_by_id(booking_id)
         if booking is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="booking not found",
-            )
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="booking not found")
         return booking
 
     async def _check_permissions(
@@ -42,10 +39,7 @@ class BookingService:
             )
 
     async def create(
-        self,
-        booking_in: BookingCreate,
-        user_id: UUID,
-        telegram_user_id: int | None = None,
+        self, booking_in: BookingCreate, user_id: UUID, telegram_user_id: int | None = None
     ) -> Booking:
         booking_dc = create_to_dc(booking_in, user_id)
 
@@ -69,8 +63,7 @@ class BookingService:
         buffer = timedelta(minutes=1)
         if starts_at < (now_utc - buffer):
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Start time must be in the future",
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Start time must be in the future"
             )
 
         if booking_dc.type == "WASHING":
@@ -106,8 +99,7 @@ class BookingService:
         async with self.uow.transaction():
             if not booking_dc.slot_ids:
                 raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="slot_ids must not be empty",
+                    status_code=status.HTTP_400_BAD_REQUEST, detail="slot_ids must not be empty"
                 )
 
             has_conflict = await self.booking_repo.check_time(
@@ -138,11 +130,7 @@ class BookingService:
                     start_eta = current_time
 
                 start_task = send_booking_reminder.apply_async(
-                    args=[
-                        telegram_user_id,
-                        str(booking.id),
-                        booking.starts_at.isoformat(),
-                    ],
+                    args=[telegram_user_id, str(booking.id), booking.starts_at.isoformat()],
                     eta=start_eta,
                 )
                 booking.start_reminder_task_id = start_task.id
@@ -152,43 +140,24 @@ class BookingService:
                     end_eta = current_time
 
                 end_task = send_booking_end_reminder.apply_async(
-                    args=[
-                        telegram_user_id,
-                        str(booking.id),
-                        booking.ends_at.isoformat(),
-                    ],
+                    args=[telegram_user_id, str(booking.id), booking.ends_at.isoformat()],
                     eta=end_eta,
                 )
                 booking.end_reminder_task_id = end_task.id
 
             complete_eta = booking.ends_at
-            complete_task = complete_booking.apply_async(
-                args=[str(booking.id)],
-                eta=complete_eta,
-            )
+            complete_task = complete_booking.apply_async(args=[str(booking.id)], eta=complete_eta)
             booking.complete_task_id = complete_task.id
 
             await self.booking_repo.save(booking)
 
         except Exception:
-            if (
-                hasattr(booking, "start_reminder_task_id")
-                and booking.start_reminder_task_id
-            ):
-                AsyncResult(booking.start_reminder_task_id, app=celery).revoke(
-                    terminate=False
-                )
-            if (
-                hasattr(booking, "end_reminder_task_id")
-                and booking.end_reminder_task_id
-            ):
-                AsyncResult(booking.end_reminder_task_id, app=celery).revoke(
-                    terminate=False
-                )
+            if hasattr(booking, "start_reminder_task_id") and booking.start_reminder_task_id:
+                AsyncResult(booking.start_reminder_task_id, app=celery).revoke(terminate=False)
+            if hasattr(booking, "end_reminder_task_id") and booking.end_reminder_task_id:
+                AsyncResult(booking.end_reminder_task_id, app=celery).revoke(terminate=False)
             if hasattr(booking, "complete_task_id") and booking.complete_task_id:
-                AsyncResult(booking.complete_task_id, app=celery).revoke(
-                    terminate=False
-                )
+                AsyncResult(booking.complete_task_id, app=celery).revoke(terminate=False)
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Booking created but notification scheduling failed",
@@ -206,17 +175,10 @@ class BookingService:
         ends_at: datetime,
     ) -> list[list[dict[str, Any]]]:
         return await self.booking_repo.find_overlaps(
-            floor=floor,
-            cso=cso,
-            booking_type=booking_type,
-            starts_at=starts_at,
-            ends_at=ends_at,
+            floor=floor, cso=cso, booking_type=booking_type, starts_at=starts_at, ends_at=ends_at
         )
 
-    async def delete_booking(
-        self, booking_id: UUID, user_id: UUID, is_admin: bool = False
-    ) -> None:
-
+    async def delete_booking(self, booking_id: UUID, user_id: UUID, is_admin: bool = False) -> None:
         booking = await self._get_or_404(booking_id)
         await self._check_permissions(booking, user_id, is_admin)
 
@@ -231,9 +193,7 @@ class BookingService:
         async with self.uow.transaction():
             await self.booking_repo.delete(booking_id)
 
-    async def booking_cancel(
-        self, booking_id: UUID, user_id: UUID, is_admin: bool = False
-    ):
+    async def booking_cancel(self, booking_id: UUID, user_id: UUID, is_admin: bool = False):
         booking = await self._get_or_404(booking_id)
         await self._check_permissions(booking, user_id, is_admin)
 
@@ -269,11 +229,7 @@ class BookingService:
         to_time: datetime,
     ) -> list[datetime]:
         return await self.booking_repo.get_available_starts(
-            floor=floor,
-            cso=cso,
-            booking_type=booking_type,
-            from_time=from_time,
-            to_time=to_time,
+            floor=floor, cso=cso, booking_type=booking_type, from_time=from_time, to_time=to_time
         )
 
     async def get_available_ends(
@@ -285,9 +241,5 @@ class BookingService:
         end_date: datetime | None = None,
     ) -> list[datetime]:
         return await self.booking_repo.get_available_ends(
-            floor=floor,
-            cso=cso,
-            booking_type=booking_type,
-            start=start,
-            end_date=end_date,
+            floor=floor, cso=cso, booking_type=booking_type, start=start, end_date=end_date
         )

@@ -10,10 +10,7 @@ from ....di import get_slot_service
 from ....schemas.pydantic.slots import Slot, SlotCreate, SlotUpdate
 from ....services.slots import SlotService
 
-router = APIRouter(
-    prefix="/slots",
-    dependencies=[Depends(get_current_user_id)],
-)
+router = APIRouter(prefix="/slots", dependencies=[Depends(get_current_user_id)])
 
 
 @router.get("/", status_code=http_status.HTTP_200_OK)
@@ -31,8 +28,7 @@ async def get_all_slots(
 
 @router.post("/", status_code=http_status.HTTP_201_CREATED)
 async def create_slot(
-    slot_data: SlotCreate,
-    slot_service: SlotService = Depends(get_slot_service),
+    slot_data: SlotCreate, slot_service: SlotService = Depends(get_slot_service)
 ) -> Slot:
     created = await slot_service.create(slot_data)
     return Slot(
@@ -47,18 +43,13 @@ async def create_slot(
 
 
 @router.delete("/{slot_id}", status_code=http_status.HTTP_204_NO_CONTENT)
-async def delete_slot(
-    slot_id: UUID,
-    slot_service: SlotService = Depends(get_slot_service),
-) -> None:
+async def delete_slot(slot_id: UUID, slot_service: SlotService = Depends(get_slot_service)) -> None:
     await slot_service.delete(slot_id)
 
 
 @router.patch("/edit/{slot_id}", status_code=http_status.HTTP_200_OK)
 async def edit_slot(
-    slot_id: UUID,
-    slot_data: SlotUpdate,
-    slot_service: SlotService = Depends(get_slot_service),
+    slot_id: UUID, slot_data: SlotUpdate, slot_service: SlotService = Depends(get_slot_service)
 ) -> Slot:
     updated = await slot_service.update(slot_id, slot_data.to_dc())
     return Slot(

@@ -12,10 +12,7 @@ from ....di import get_booking_service
 from ....schemas.pydantic.booking import BookingCreate, BookingRead, BookingType
 from ....services.booking import BookingService
 
-router = APIRouter(
-    prefix="/bookings",
-    dependencies=[Depends(get_current_user_id)],
-)
+router = APIRouter(prefix="/bookings", dependencies=[Depends(get_current_user_id)])
 
 
 @router.get("/me", status_code=http_status.HTTP_200_OK)
@@ -46,11 +43,7 @@ async def find_overlaps_endpoint(
     booking: BookingService = Depends(get_booking_service),
 ):
     places = await booking.find_overlaps(
-        floor=floor,
-        cso=cso,
-        booking_type=booking_type,
-        starts_at=starts_at,
-        ends_at=ends_at,
+        floor=floor, cso=cso, booking_type=booking_type, starts_at=starts_at, ends_at=ends_at
     )
     return places
 
@@ -81,11 +74,7 @@ async def get_available_starts(
         to_time = from_time + timedelta(days=2)
 
     starts = await booking.get_available_starts(
-        floor=floor,
-        booking_type=booking_type,
-        from_time=from_time,
-        cso=cso,
-        to_time=to_time,
+        floor=floor, booking_type=booking_type, from_time=from_time, cso=cso, to_time=to_time
     )
     return starts
 
@@ -112,9 +101,7 @@ async def delete_booking(
     current_user_id: UUID = Depends(get_current_user_id),
     is_admin: bool = Depends(require_admin),
 ) -> None:
-    booking_deleted = await booking.delete_booking(
-        booking_id, current_user_id, is_admin
-    )
+    booking_deleted = await booking.delete_booking(booking_id, current_user_id, is_admin)
     return booking_deleted
 
 
@@ -125,9 +112,7 @@ async def cancel_booking(
     current_user_id: UUID = Depends(get_current_user_id),
     is_admin: bool = Depends(require_admin),
 ) -> BookingRead:
-    booking_canceled = await booking.booking_cancel(
-        booking_id, current_user_id, is_admin
-    )
+    booking_canceled = await booking.booking_cancel(booking_id, current_user_id, is_admin)
     return booking_canceled
 
 

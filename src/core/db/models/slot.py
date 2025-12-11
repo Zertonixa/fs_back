@@ -22,8 +22,7 @@ class Type(enum.StrEnum):
 class Slot(Base):
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     type: Mapped[Type] = mapped_column(
-        PgEnum(Type, name="slot_type", create_type=True),
-        nullable=False,
+        PgEnum(Type, name="slot_type", create_type=True), nullable=False
     )
     floor: Mapped[int] = mapped_column(Integer)
     cso: Mapped[int] = mapped_column(Integer)
@@ -36,12 +35,9 @@ class Slot(Base):
     )
 
     booking_slots: Mapped[list["BookingSlots"]] = relationship(
-        back_populates="slot",
-        cascade="all, delete-orphan",
+        back_populates="slot", cascade="all, delete-orphan"
     )
 
     bookings: Mapped[list["Booking"]] = relationship(
-        secondary="bookingslots",
-        back_populates="slots",
-        lazy="selectin",
+        secondary="bookingslots", back_populates="slots", lazy="selectin"
     )

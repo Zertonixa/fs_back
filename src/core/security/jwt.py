@@ -50,14 +50,10 @@ async def get_current_payload(request: Request) -> dict[str, Any]:
     token = request.cookies.get("access_token")
     if not token:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Not authenticated (no cookie)",
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated (no cookie)"
         )
     try:
         payload = decode_token(token)
         return payload
     except Exception:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token",
-        )
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")

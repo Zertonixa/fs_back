@@ -31,9 +31,7 @@ class BookingRepo(IBookingRepo):
 
         if booking.slot_ids:
             slots = list(
-                await self.session.scalars(
-                    select(Slot).where(Slot.id.in_(booking.slot_ids))
-                )
+                await self.session.scalars(select(Slot).where(Slot.id.in_(booking.slot_ids)))
             )
             orm_obj.slots = slots
             await orm_obj.save(self.session, refresh=True)
@@ -45,17 +43,12 @@ class BookingRepo(IBookingRepo):
         return orm_to_dc(obj) if obj else None
 
     async def find_user(self, user_id: UUID) -> list[BookingDC]:
-        rows = await self.session.scalars(
-            select(BookingORM).where(BookingORM.user_id == user_id)
-        )
+        rows = await self.session.scalars(select(BookingORM).where(BookingORM.user_id == user_id))
         return [orm_to_dc(obj) for obj in rows]
 
     async def get_my_active(self, user_id: UUID) -> list[BookingDC]:
         rows = await self.session.scalars(
-            select(BookingORM).where(
-                BookingORM.user_id == user_id,
-                BookingORM.status == "NEW",
-            )
+            select(BookingORM).where(BookingORM.user_id == user_id, BookingORM.status == "NEW")
         )
         return [orm_to_dc(obj) for obj in rows]
 
@@ -111,9 +104,7 @@ class BookingRepo(IBookingRepo):
         slots: list[Slot] = []
         if booking.slot_ids:
             slots = list(
-                await self.session.scalars(
-                    select(Slot).where(Slot.id.in_(booking.slot_ids))
-                )
+                await self.session.scalars(select(Slot).where(Slot.id.in_(booking.slot_ids)))
             )
         orm_obj.slots = slots
 
@@ -124,31 +115,19 @@ class BookingRepo(IBookingRepo):
         minutes = (dt.minute // 15) * 15
         if dt.minute % 15 != 0:
             minutes += 15
-        return dt.replace(minute=0, second=0, microsecond=0) + timedelta(
-            minutes=minutes
-        )
+        return dt.replace(minute=0, second=0, microsecond=0) + timedelta(minutes=minutes)
 
     @staticmethod
     def _floor_to_step(dt: datetime) -> datetime:
         minutes = (dt.minute // 15) * 15
-        return dt.replace(minute=0, second=0, microsecond=0) + timedelta(
-            minutes=minutes
-        )
+        return dt.replace(minute=0, second=0, microsecond=0) + timedelta(minutes=minutes)
 
-    async def _get_slot_ids(
-        self,
-        floor: int,
-        cso: int,
-        booking_type: BookingType,
-    ) -> list[UUID]:
+    async def _get_slot_ids(self, floor: int, cso: int, booking_type: BookingType) -> list[UUID]:
         slot_type = SlotType[booking_type]
 
         result = await self.session.scalars(
             select(Slot.id).where(
-                Slot.floor == floor,
-                Slot.cso == cso,
-                Slot.type == slot_type,
-                Slot.status.is_(True),
+                Slot.floor == floor, Slot.cso == cso, Slot.type == slot_type, Slot.status.is_(True)
             )
         )
         return list(result)
@@ -192,11 +171,7 @@ class BookingRepo(IBookingRepo):
 
         for slot_id, place, row in slots:
             rows_map[row].append(
-                {
-                    "id": slot_id,
-                    "place": place,
-                    "isAvailable": slot_id not in busy_ids,
-                }
+                {"id": slot_id, "place": place, "isAvailable": slot_id not in busy_ids}
             )
 
         return [rows_map[r] for r in sorted(rows_map.keys())]
@@ -270,7 +245,6 @@ class BookingRepo(IBookingRepo):
         start: datetime,
         end_date: datetime | None = None,
     ) -> list[datetime]:
-
         start = self._ceil_to_step(start)
 
         if booking_type == BookingType.WASHING:
@@ -283,12 +257,12 @@ class BookingRepo(IBookingRepo):
         max_end_time = start + max_duration
 
         if end_date:
-            end_date_start = datetime.combine(
-                end_date.date(), datetime.min.time()
-            ).replace(tzinfo=start.tzinfo)
-            end_date_end = datetime.combine(
-                end_date.date(), datetime.min.time()
-            ).replace(hour=23, minute=30, second=0, tzinfo=start.tzinfo)
+            end_date_start = datetime.combine(end_date.date(), datetime.min.time()).replace(
+                tzinfo=start.tzinfo
+            )
+            end_date_end = datetime.combine(end_date.date(), datetime.min.time()).replace(
+                hour=23, minute=30, second=0, tzinfo=start.tzinfo
+            )
 
             if end_date_start < start:
                 return []

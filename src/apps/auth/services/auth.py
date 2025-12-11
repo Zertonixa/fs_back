@@ -13,9 +13,7 @@ from ..schemas.dataclasses.auth import TgUserPayload
 
 
 class AuthService:
-
     def __init__(self, user_repo: IUserRepo, bot_token: str, jwt_issuer, uow: UoW):
-
         self.user_repo = user_repo
         self.bot_token = bot_token
         self.jwt_issuer = jwt_issuer
@@ -28,15 +26,9 @@ class AuthService:
             user = await self.user_repo.upsert_by_telegram(tg_user)
 
         if getattr(user, "is_banned", False):
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="User is banned",
-            )
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User is banned")
 
-        token = self.jwt_issuer(
-            subject=str(user.id),
-            extra_claims={"tg": user.telegram_id},
-        )
+        token = self.jwt_issuer(subject=str(user.id), extra_claims={"tg": user.telegram_id})
 
         public_user = {
             "id": str(user.id),
@@ -56,17 +48,12 @@ class AuthService:
         pairs = [f"{k}={v}" for k, v in sorted(data.items())]
         data_check_string = "\n".join(pairs)
 
-
         secret_key = hmac.new(
-            b"WebAppData",
-            self.bot_token.encode("utf-8"),
-            hashlib.sha256,
+            b"WebAppData", self.bot_token.encode("utf-8"), hashlib.sha256
         ).digest()
 
         computed_hash = hmac.new(
-            secret_key,
-            data_check_string.encode("utf-8"),
-            hashlib.sha256,
+            secret_key, data_check_string.encode("utf-8"), hashlib.sha256
         ).hexdigest()
 
         if computed_hash != received_hash:
@@ -79,19 +66,12 @@ class AuthService:
             raise ValueError("Missing 'user' in initData")
 
         user_json = json.loads(user_raw)
-        return TgUserPayload(
-            telegram_id=int(user_json["id"]),
-            username=user_json.get("username"),
-        )
+        return TgUserPayload(telegram_id=int(user_json["id"]), username=user_json.get("username"))
 
     @staticmethod
-    async def get_current_user_id(
-        payload: dict[str, Any] = Depends(get_current_payload),
-    ) -> int:
+    async def get_current_user_id(payload: dict[str, Any] = Depends(get_current_payload)) -> int:
         return get_user_id_from_payload(payload)
 
     @staticmethod
-    async def get_current_telegram_id(
-        payload: dict = Depends(get_current_payload),
-    ) -> int | None:
+    async def get_current_telegram_id(payload: dict = Depends(get_current_payload)) -> int | None:
         return payload.get("tg")

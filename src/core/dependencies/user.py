@@ -18,23 +18,15 @@ async def get_current_user(
     user = await Users.get_by_id(session, user_id)
 
     if user is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User not found",
-        )
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
 
     if getattr(user, "is_banned", False):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="User is banned",
-        )
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User is banned")
 
     return user
 
 
-async def get_current_user_id(
-    user: Users = Depends(get_current_user),
-) -> UUID:
+async def get_current_user_id(user: Users = Depends(get_current_user)) -> UUID:
     return user.id
 
 

@@ -29,9 +29,7 @@ class Booking(Base):
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
 
     user_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("users.id", ondelete="CASCADE"),
-        index=True,
-        nullable=False,
+        ForeignKey("users.id", ondelete="CASCADE"), index=True, nullable=False
     )
 
     start_reminder_task_id: Mapped[str | None] = mapped_column(nullable=True)
@@ -55,12 +53,9 @@ class Booking(Base):
     ends_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
     booking_slots: Mapped[list["BookingSlots"]] = relationship(
-        back_populates="booking",
-        cascade="all, delete-orphan",
+        back_populates="booking", cascade="all, delete-orphan"
     )
 
     slots: Mapped[list["Slot"]] = relationship(
-        secondary="bookingslots",
-        back_populates="bookings",
-        lazy="selectin",
+        secondary="bookingslots", back_populates="bookings", lazy="selectin"
     )

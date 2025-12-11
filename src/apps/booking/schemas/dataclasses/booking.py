@@ -1,9 +1,9 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Literal
 from uuid import UUID
 
-Status = Literal["NEW", "CANCELLED", "DONE"]
+BookingStatus = Literal["NEW", "CANCELLED", "DONE"]
 BookingType = Literal["WASHING", "DRYING"]
 
 
@@ -11,8 +11,23 @@ BookingType = Literal["WASHING", "DRYING"]
 class Booking:
     id: UUID
     user_id: UUID
-    machine_id: UUID
+    type: BookingType
+    start_reminder_task_id: str | None
+    end_reminder_task_id: str | None
+    complete_task_id: str | None
+    starts_at: datetime
+    floor: int | None
+    ends_at: datetime
+    status: BookingStatus = "NEW"
+    slot_places: list[int] = field(default_factory=list)
+    slot_ids: list[UUID] = field(default_factory=list)
+
+
+@dataclass(slots=True)
+class BookingCreate:
+    user_id: UUID
     type: BookingType
     starts_at: datetime
+    floor: int
     ends_at: datetime
-    status: BookingType = "New"
+    slot_ids: list[UUID]

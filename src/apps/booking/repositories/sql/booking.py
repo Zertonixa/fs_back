@@ -65,7 +65,7 @@ class BookingRepo(IBookingRepo):
         stmt = select(BookingORM).where(BookingORM.id.in_(booking_ids))
         result = await self.session.execute(stmt)
         bookings = result.scalars().all()
-        
+
         if not bookings:
             return []
         
@@ -277,7 +277,6 @@ class BookingRepo(IBookingRepo):
             end_limit = min(max_end_time, end_date_end)
         else:
             end_limit = self._floor_to_step(max_end_time)
-
 
         if end_limit <= start + timedelta(minutes=30):
             return []

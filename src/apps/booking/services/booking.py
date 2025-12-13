@@ -209,7 +209,6 @@ class BookingService:
             for booking_id in booking_ids:
                 booking = await self._get_or_404(booking_id)
                 await self._check_permissions(booking, user_id, is_admin)
-                
                 for task_id in (
                     booking.start_reminder_task_id,
                     booking.end_reminder_task_id,
@@ -217,7 +216,7 @@ class BookingService:
                 ):
                     if task_id:
                         AsyncResult(task_id, app=celery).revoke(terminate=False)
-                
+ 
                 cancelled_bookings.append(booking)
             
             await self.booking_repo.cancel(booking_ids)

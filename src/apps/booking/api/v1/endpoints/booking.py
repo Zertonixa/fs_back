@@ -112,9 +112,7 @@ async def cancel_booking(
     current_user_id: UUID = Depends(get_current_user_id),
     is_admin: bool = Depends(require_admin),
 ) -> list[BookingRead]:
-    booking_canceled = await booking.booking_cancel(
-        booking_ids, current_user_id, is_admin
-    )
+    booking_canceled = await booking.booking_cancel(booking_ids, current_user_id, is_admin)
     return booking_canceled
 
 

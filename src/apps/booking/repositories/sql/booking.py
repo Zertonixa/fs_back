@@ -65,13 +65,20 @@ class BookingRepo(IBookingRepo):
             await obj.delete(self.session)
         return orm_to_dc(obj)
 
-    async def cancel(self, booking_id: UUID) -> BookingDC | None:
-        obj = await self.session.get(BookingORM, booking_id)
-        if obj:
-            obj.status = BookingStatus.CANCELLED
-            self.session.add(obj)
-            self.session.flush(obj)
-        return orm_to_dc(obj)
+    async def cancel(self, booking_ids: UUID) -> list[BookingDC]:
+        stmt = select(BookingORM).where(BookingORM.id.in_(booking_ids))
+        result = await self.session.execute(stmt)
+        bookings = result.scalars().all()
+        
+        if not bookings:
+            return []
+        
+        for booking in bookings:
+            booking.status = "CANCELLED"
+        
+        await self.session.flush()
+        
+        return [orm_to_dc(booking) for booking in bookings]
 
     async def check_time(
         self,
@@ -290,12 +297,10 @@ class BookingRepo(IBookingRepo):
                 end_date.date(), datetime.min.time()
             ).replace(hour=23, minute=30, second=0, tzinfo=start.tzinfo)
 
-            if end_date_start < start:
-                return []
-
             end_limit = min(max_end_time, end_date_end)
         else:
             end_limit = self._floor_to_step(max_end_time)
+
 
         if end_limit <= start + timedelta(minutes=30):
             return []
@@ -323,7 +328,7 @@ class BookingRepo(IBookingRepo):
                 CROSS JOIN ends e
                 WHERE s.id = ANY(:slot_ids)
             )
-            SELECT av.end_time
+            SELECT DISTINCT av.end_time  -- DISTINCT вместо GROUP BY/HAVING
             FROM available_slots av
             WHERE NOT EXISTS (
                 SELECT 1
@@ -335,10 +340,8 @@ class BookingRepo(IBookingRepo):
                 AND b.starts_at < av.end_time
                 AND b.ends_at > :start
             )
-            GROUP BY av.end_time
-            HAVING COUNT(DISTINCT av.slot_id) = :total_slots
             ORDER BY av.end_time;
-        """
+            """
         )
 
         rows = await self.session.execute(

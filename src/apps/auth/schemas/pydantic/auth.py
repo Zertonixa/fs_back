@@ -1,11 +1,8 @@
-from pydantic import BaseModel, Field
-from pydantic import ConfigDict 
+from pydantic import BaseModel
 
 
 class TelegramAuthIn(BaseModel):
-    init_data: str = Field(alias="initData")
-
-    model_config = ConfigDict(populate_by_name=True)
+    initData: str
 
 
 class TokenOut(BaseModel):

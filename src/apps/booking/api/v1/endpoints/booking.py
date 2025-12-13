@@ -118,15 +118,15 @@ async def delete_booking(
     return booking_deleted
 
 
-@router.patch("/{booking_id}", status_code=http_status.HTTP_200_OK)
+@router.patch("", status_code=http_status.HTTP_200_OK)
 async def cancel_booking(
-    booking_id: UUID,
+    booking_ids: list[UUID],
     booking: BookingService = Depends(get_booking_service),
     current_user_id: UUID = Depends(get_current_user_id),
     is_admin: bool = Depends(require_admin),
-) -> BookingRead:
+) -> list[BookingRead]:
     booking_canceled = await booking.booking_cancel(
-        booking_id, current_user_id, is_admin
+        booking_ids, current_user_id, is_admin
     )
     return booking_canceled
 

@@ -43,10 +43,7 @@ class BookingRepo(IBookingRepo):
         return orm_to_dc(obj) if obj else None
 
     async def find_user(self, user_id: UUID) -> list[BookingDC]:
-        rows = await self.session.scalars(
-            select(BookingORM).where(BookingORM.user_id == user_id)
-
-        )
+        rows = await self.session.scalars(select(BookingORM).where(BookingORM.user_id == user_id))
         return [orm_to_dc(obj) for obj in rows]
 
     async def get_my_active(self, user_id: UUID) -> list[BookingDC]:
@@ -68,12 +65,12 @@ class BookingRepo(IBookingRepo):
 
         if not bookings:
             return []
-        
+
         for booking in bookings:
             booking.status = "CANCELLED"
-        
+
         await self.session.flush()
-        
+
         return [orm_to_dc(booking) for booking in bookings]
 
     async def check_time(

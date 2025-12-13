@@ -196,11 +196,9 @@ class BookingService:
     async def booking_cancel(
         self, booking_ids: list[UUID], user_id: UUID, is_admin: bool = False
     ) -> list[Booking]:
-        
         if not booking_ids:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="No booking IDs provided"
+                status_code=status.HTTP_400_BAD_REQUEST, detail="No booking IDs provided"
             )
 
         cancelled_bookings = []
@@ -216,9 +214,9 @@ class BookingService:
                 ):
                     if task_id:
                         AsyncResult(task_id, app=celery).revoke(terminate=False)
- 
+
                 cancelled_bookings.append(booking)
-            
+
             await self.booking_repo.cancel(booking_ids)
 
         return cancelled_bookings

@@ -6,7 +6,6 @@ from src.core.db.models import Users
 
 
 class IUserRepo(ABC):
-
     @abstractmethod
     async def get_by_id(self, user_id: UUID) -> Users | None: ...
 

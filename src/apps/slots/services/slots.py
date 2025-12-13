@@ -18,27 +18,17 @@ class SlotService:
     async def _get_or_404(self, slot_id: UUID) -> SlotDC:
         slot = await self.slot_repo.get_by_id(slot_id)
         if slot is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="slot not found",
-            )
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="slot not found")
         return slot
 
     async def get_flat(
-        self,
-        type_: SlotType | None = None,
-        floor_: int | None = None,
-        cso_: int | None = None,
+        self, type_: SlotType | None = None, floor_: int | None = None, cso_: int | None = None
     ) -> list[SlotDC]:
         return await self.slot_repo.get_all(type_, floor_, cso_)
 
     async def get_matrix(
-        self,
-        type_: SlotType | None = None,
-        floor_: int | None = None,
-        cso_: int | None = None,
+        self, type_: SlotType | None = None, floor_: int | None = None, cso_: int | None = None
     ) -> list[list[SlotCell]]:
-
         slots = await self.slot_repo.get_all(type_, floor_, cso_)
 
         if not slots:
@@ -47,13 +37,7 @@ class SlotService:
         matrix_raw: dict[int, list[SlotCell]] = defaultdict(list)
 
         for s in slots:
-            matrix_raw[s.row].append(
-                SlotCell(
-                    place=s.place,
-                    id=s.id,
-                    is_available=s.status,
-                )
-            )
+            matrix_raw[s.row].append(SlotCell(place=s.place, id=s.id, is_available=s.status))
 
         matrix: list[list[SlotCell]] = [
             matrix_raw[row_index] for row_index in sorted(matrix_raw.keys())
@@ -66,11 +50,7 @@ class SlotService:
     async def create(self, slot: SlotDC) -> SlotDC:
         async with self.uow.transaction():
             existing = await self.slot_repo.get_by_params(
-                type_=slot.type,
-                floor_=slot.floor,
-                cso_=slot.cso,
-                row_=slot.row,
-                place_=slot.place,
+                type_=slot.type, floor_=slot.floor, cso_=slot.cso, row_=slot.row, place_=slot.place
             )
             if existing is not None:
                 raise HTTPException(
@@ -85,11 +65,7 @@ class SlotService:
             await self._get_or_404(slot_id)
 
             existing = await self.slot_repo.get_by_params(
-                type_=slot.type,
-                floor_=slot.floor,
-                cso_=slot.cso,
-                row_=slot.row,
-                place_=slot.place,
+                type_=slot.type, floor_=slot.floor, cso_=slot.cso, row_=slot.row, place_=slot.place
             )
             if existing is not None and existing.id != slot_id:
                 raise HTTPException(
@@ -99,10 +75,7 @@ class SlotService:
 
             updated = await self.slot_repo.update(slot_id, slot)
             if updated is None:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail="slot not found",
-                )
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="slot not found")
             return updated
 
     async def delete(self, slot_id: UUID) -> None:

@@ -16,10 +16,7 @@ class AdminService:
     async def _get_or_404(self, user_id: UUID) -> Users:
         user = await self.repo.get_by_id(user_id)
         if user is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="User not found",
-            )
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
         return user
 
     async def ban_user(self, user_id: UUID) -> Users:
@@ -35,17 +32,9 @@ class AdminService:
             return user
 
     async def edit_user(
-        self,
-        user_id: UUID,
-        *,
-        username: str | None = None,
-        is_banned: bool | None = None,
+        self, user_id: UUID, *, username: str | None = None, is_banned: bool | None = None
     ) -> Users:
         async with self.uow.transaction():
             await self._get_or_404(user_id)
-            user = await self.repo.update_user(
-                user_id,
-                username=username,
-                is_banned=is_banned,
-            )
+            user = await self.repo.update_user(user_id, username=username, is_banned=is_banned)
             return user

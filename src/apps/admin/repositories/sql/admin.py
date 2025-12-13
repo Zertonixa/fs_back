@@ -26,11 +26,7 @@ class AdminUserRepo(IAdminUserRepo):
         return user
 
     async def update_user(
-        self,
-        user_id: UUID,
-        *,
-        username: str | None = None,
-        is_banned: bool | None = None,
+        self, user_id: UUID, *, username: str | None = None, is_banned: bool | None = None
     ) -> Users:
         user = await self.get_by_id(user_id)
         if user is None:

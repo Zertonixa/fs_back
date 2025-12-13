@@ -16,12 +16,8 @@ class SlotRepo(ISlotRepo):
         self.session = session
 
     async def get_all(
-        self,
-        type_: SlotType | None = None,
-        floor_: int | None = None,
-        cso_: int | None = None,
+        self, type_: SlotType | None = None, floor_: int | None = None, cso_: int | None = None
     ) -> list[SlotDC]:
-
         stmt = select(SlotORM).order_by(SlotORM.row, SlotORM.place)
 
         if type_:
@@ -71,12 +67,7 @@ class SlotRepo(ISlotRepo):
         await self.session.flush()
 
     async def get_by_params(
-        self,
-        type_: SlotType,
-        floor_: int,
-        cso_: int,
-        row_: int,
-        place_: int,
+        self, type_: SlotType, floor_: int, cso_: int, row_: int, place_: int
     ) -> SlotDC | None:
         stmt = (
             select(SlotORM)

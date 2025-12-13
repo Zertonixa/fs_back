@@ -16,9 +16,5 @@ class ErrorMiddleware(BaseHTTPMiddleware):
             log.error("Unhandled exception: %s\n%s", exc, traceback.format_exc())
 
             return JSONResponse(
-                status_code=500,
-                content={
-                    "detail": "internal server error",
-                    "error": str(exc),
-                },
+                status_code=500, content={"detail": "internal server error", "error": str(exc)}
             )

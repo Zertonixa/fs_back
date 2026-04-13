@@ -15,8 +15,7 @@ def get_session() -> aioboto3.Session:
 async def get_s3_client() -> AsyncIterator:
     session = get_session()
     client_config = BotoConfig(
-        region_name=settings.s3.region,
-        s3={"addressing_style": settings.s3.addressing_style},
+        region_name=settings.s3.region, s3={"addressing_style": settings.s3.addressing_style}
     )
 
     async with session.client(

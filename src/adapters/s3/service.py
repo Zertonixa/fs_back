@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 from pathlib import Path
 from uuid import uuid4
 
@@ -26,18 +26,10 @@ class S3Service:
         ext = Path(filename).suffix
         now = datetime.now(UTC)
         return (
-            f"complaints/"
-            f"{now.year}/{now.month:02d}/{now.day:02d}/"
-            f"{complaint_id}/{uuid4().hex}{ext}"
+            f"complaints/{now.year}/{now.month:02d}/{now.day:02d}/{complaint_id}/{uuid4().hex}{ext}"
         )
 
-    async def upload_file(
-        self,
-        *,
-        data: bytes,
-        object_key: str,
-        content_type: str | None,
-    ) -> None:
+    async def upload_file(self, *, data: bytes, object_key: str, content_type: str | None) -> None:
         async with get_s3_client() as client:
             await client.put_object(
                 Bucket=self.bucket,
@@ -48,30 +40,19 @@ class S3Service:
 
     async def delete_file(self, object_key: str) -> None:
         async with get_s3_client() as client:
-            await client.delete_object(
-                Bucket=self.bucket,
-                Key=object_key,
-            )
+            await client.delete_object(Bucket=self.bucket, Key=object_key)
 
-    async def generate_download_url(
-        self,
-        object_key: str,
-        expires_in: int = 3600,
-    ) -> str:
+    async def generate_download_url(self, object_key: str, expires_in: int = 3600) -> str:
         async with get_s3_client() as client:
             url = await client.generate_presigned_url(
                 ClientMethod="get_object",
-                Params={
-                    "Bucket": self.bucket,
-                    "Key": object_key,
-                },
+                Params={"Bucket": self.bucket, "Key": object_key},
                 ExpiresIn=expires_in,
             )
-            
+
             url = url.replace(settings.s3.endpoint, settings.s3.public_url)
             return url
 
-        
 
 from abc import ABC, abstractmethod
 
@@ -85,11 +66,7 @@ class IS3Service(ABC):
 
     @abstractmethod
     async def upload_file(
-        self,
-        *,
-        data: bytes,
-        object_key: str,
-        content_type: str | None,
+        self, *, data: bytes, object_key: str, content_type: str | None
     ) -> None: ...
 
     @abstractmethod

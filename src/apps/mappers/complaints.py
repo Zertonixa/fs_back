@@ -1,11 +1,6 @@
-from src.apps.complaints.schemas.dataclasses.complaints import (
-    Complaint as ComplaintDC,
-    ComplaintFile as ComplaintFileDC,
-)
-from src.apps.complaints.schemas.pydantic.complaints import (
-    ComplaintFileRead,
-    ComplaintRead,
-)
+from src.apps.complaints.schemas.dataclasses.complaints import Complaint as ComplaintDC
+from src.apps.complaints.schemas.dataclasses.complaints import ComplaintFile as ComplaintFileDC
+from src.apps.complaints.schemas.pydantic.complaints import ComplaintFileRead, ComplaintRead
 from src.core.db.models.complaints import Complaint as ComplaintORM
 from src.core.db.models.complaints_files import ComplaintFile as ComplaintFileORM
 

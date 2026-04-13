@@ -32,9 +32,7 @@ async def create_complaint(
 ) -> ComplaintRead:
     try:
         created = await service.create(
-            complaint_in=ComplaintCreate(text=text),
-            user_id=user_id,
-            files=files,
+            complaint_in=ComplaintCreate(text=text), user_id=user_id, files=files
         )
         return dc_to_pydantic(created)
     except Exception as e:
@@ -53,11 +51,7 @@ async def get_my_complaints(
     user_id: UUID = Depends(get_current_user_id),
 ) -> list[ComplaintRead]:
     complaints = await service.get_complaints(
-        limit=limit,
-        offset=offset,
-        status=status,
-        user_id=user_id,
-        search_text=search,
+        limit=limit, offset=offset, status=status, user_id=user_id, search_text=search
     )
     return [dc_to_pydantic(c) for c in complaints]
 
@@ -81,10 +75,7 @@ async def get_complaint_files(
     is_admin: bool = Depends(get_is_admin),
 ) -> list[ComplaintFileRead]:
     files_with_urls = await service.get_files_with_urls(complaint_id, user_id, is_admin)
-    return [
-        dc_file_to_pydantic(file_dc, download_url=url)
-        for file_dc, url in files_with_urls
-    ]
+    return [dc_file_to_pydantic(file_dc, download_url=url) for file_dc, url in files_with_urls]
 
 
 @router.patch("/{complaint_id}", status_code=http_status.HTTP_200_OK)
@@ -96,10 +87,7 @@ async def update_complaint(
     is_admin: bool = Depends(get_is_admin),
 ) -> ComplaintRead:
     updated = await service.update(
-        complaint_id=complaint_id,
-        text=text,
-        user_id=user_id,
-        is_admin=is_admin,
+        complaint_id=complaint_id, text=text, user_id=user_id, is_admin=is_admin
     )
     return dc_to_pydantic(updated)
 
@@ -111,11 +99,7 @@ async def delete_complaint(
     user_id: UUID = Depends(get_current_user_id),
     is_admin: bool = Depends(get_is_admin),
 ) -> Response:
-    await service.delete(
-        complaint_id=complaint_id,
-        user_id=user_id,
-        is_admin=is_admin,
-    )
+    await service.delete(complaint_id=complaint_id, user_id=user_id, is_admin=is_admin)
     return Response(status_code=http_status.HTTP_204_NO_CONTENT)
 
 
@@ -130,13 +114,10 @@ async def get_complaints(
     admin=Depends(require_admin),
 ) -> list[ComplaintRead]:
     complaints = await service.get_complaints(
-        limit=limit,
-        offset=offset,
-        status=status,
-        user_id=user_id,
-        search_text=search,
+        limit=limit, offset=offset, status=status, user_id=user_id, search_text=search
     )
     return [dc_to_pydantic(c) for c in complaints]
+
 
 @router.patch("/{complaint_id}/status", status_code=http_status.HTTP_200_OK)
 async def update_complaint_status(
@@ -147,9 +128,6 @@ async def update_complaint_status(
     is_admin: bool = Depends(get_is_admin),
 ) -> ComplaintRead:
     updated = await service.update_status(
-        complaint_id=complaint_id,
-        new_status=payload.status,
-        user_id=user_id,
-        is_admin=is_admin,
+        complaint_id=complaint_id, new_status=payload.status, user_id=user_id, is_admin=is_admin
     )
     return dc_to_pydantic(updated)

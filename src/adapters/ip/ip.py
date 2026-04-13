@@ -7,15 +7,10 @@ class IpAdapter:
         self.client = client
         self.url = "http://ip-api.com/json"
 
-    @retry(
-        stop=stop_after_attempt(3),
-        wait=wait_exponential(multiplier=1),
-        reraise=True,
-    )
+    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1), reraise=True)
     async def fetch_ip(self, ip: str) -> dict:
         response = await self.client.get(
-            f"{self.url}/{ip}",
-            params={"fields": "status,message,city,lat,lon"},
+            f"{self.url}/{ip}", params={"fields": "status,message,city,lat,lon"}
         )
         response.raise_for_status()
         data = response.json()
@@ -26,8 +21,4 @@ class IpAdapter:
         return data
 
     def normalize(self, data: dict) -> dict:
-        return {
-            "city": data["city"],
-            "lat": data["lat"],
-            "lon": data["lon"],
-        }
+        return {"city": data["city"], "lat": data["lat"], "lon": data["lon"]}

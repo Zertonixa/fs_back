@@ -99,6 +99,8 @@ class RedisNotify(BaseModel):
     default_ttl_seconds: int = Field(default=3600, description="Fallback TTL for set()")
     negative_ttl_seconds: int = Field(default=60, description="TTL for negative cache entries")
 
+class WeatherApi(BaseModel):
+    weather_api_key: str = Field(default="your_api_key", )
 
 class S3(BaseModel):
     endpoint: str = Field(default="http://minio:9000", description="URL эндпоинта MinIO/S3.")
@@ -108,12 +110,13 @@ class S3(BaseModel):
     secret_key: str = Field(
         default="supersecretkey", description="Секретный ключ (AWS_SECRET_ACCESS_KEY)."
     )
-    bucket: str = Field(default="katana", description="Название бакета для хранения файлов.")
+    bucket: str = Field(default="Example", description="Название бакета для хранения файлов.")
     region: str = Field(
         default="us-east-1",
         description="Регион (для MinIO можно оставить фиктивное значение, например us-east-1).",
     )
-    use_ssl: bool = Field(default=True, description="Использовать ли SSL для подключения.")
+    use_ssl: bool = Field(default=False, description="Использовать ли SSL для подключения.")
+    public_url: str = Field(default="http://localhost:9000")
     addressing_style: str = Field(
         default="path",
         description="Стиль обращения к бакету (path или virtual). Для MinIO обычно path.",
@@ -182,6 +185,10 @@ class Docs(BaseModel):
 
 class Bot(BaseModel):
     bot_token: str = Field(default="token", description="Your secret key")
+
+
+class Security(BaseModel):
+    root_admin_telegram_ids: list[int] = Field(default_factory=list, description="Root admin tg id")
 
 
 class RedisCommon(BaseModel):
@@ -271,7 +278,9 @@ class Config(BaseSettings):
 
     app: App = App()
     jwt: JWT = JWT()
+    weather: WeatherApi = WeatherApi()
     bot: Bot = Bot()
+    security: Security = Security()
     redis_notify: RedisNotify = RedisNotify()
     database: Database = Database()
     logging: Logging = Logging()

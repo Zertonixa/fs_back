@@ -35,3 +35,11 @@ class BookingCancel(BaseModel):
 
 class BookingTime(BaseModel):
     time: datetime
+
+
+class BookingNearest(BaseModel):
+    starts_at: datetime
+    ends_at: datetime
+    slot_id: UUID
+    slot_place: int
+    floor: int

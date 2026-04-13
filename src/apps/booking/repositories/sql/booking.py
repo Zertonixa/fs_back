@@ -3,18 +3,18 @@ from datetime import datetime, timedelta
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import select, text
+from sqlalchemy import select, text, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.apps.mappers.booking import dc_to_orm, orm_to_dc
 from src.core.db.models.booking import Booking as BookingORM
-from src.core.db.models.booking import BookingType
+from src.core.db.models.booking import BookingStatus, BookingType
 from src.core.db.models.booking_slot import BookingSlots
 from src.core.db.models.slot import Slot
 from src.core.db.models.slot import Type as SlotType
 
 from ...schemas.dataclasses.booking import Booking as BookingDC
-from ...schemas.dataclasses.booking import BookingStatus
+from ...schemas.dataclasses.booking import BookingNearest
 from ..interfaces import IBookingRepo
 
 MIN_SLOT_DURATION = timedelta(minutes=30)
@@ -43,10 +43,7 @@ class BookingRepo(IBookingRepo):
         return orm_to_dc(obj) if obj else None
 
     async def find_user(self, user_id: UUID) -> list[BookingDC]:
-        rows = await self.session.scalars(
-            select(BookingORM).where(BookingORM.user_id == user_id)
-
-        )
+        rows = await self.session.scalars(select(BookingORM).where(BookingORM.user_id == user_id))
         return [orm_to_dc(obj) for obj in rows]
 
     async def get_my_active(self, user_id: UUID) -> list[BookingDC]:
@@ -68,12 +65,12 @@ class BookingRepo(IBookingRepo):
 
         if not bookings:
             return []
-        
+
         for booking in bookings:
             booking.status = "CANCELLED"
-        
+
         await self.session.flush()
-        
+
         return [orm_to_dc(booking) for booking in bookings]
 
     async def check_time(
@@ -153,11 +150,10 @@ class BookingRepo(IBookingRepo):
         slot_type = SlotType[booking_type]
 
         slots_result = await self.session.execute(
-            select(Slot.id, Slot.place, Slot.row)
+            select(Slot.id, Slot.place, Slot.row, Slot.status)
             .where(Slot.floor == floor)
             .where(Slot.cso == cso)
             .where(Slot.type == slot_type)
-            .where(Slot.status.is_(True))
             .order_by(Slot.row, Slot.place)
         )
         slots = slots_result.all()
@@ -179,9 +175,9 @@ class BookingRepo(IBookingRepo):
 
         rows_map: dict[int, list[dict[str, Any]]] = defaultdict(list)
 
-        for slot_id, place, row in slots:
+        for slot_id, place, row, status in slots:
             rows_map[row].append(
-                {"id": slot_id, "place": place, "isAvailable": slot_id not in busy_ids}
+                {"id": slot_id, "place": place, "isAvailable": slot_id not in busy_ids and status}
             )
 
         return [rows_map[r] for r in sorted(rows_map.keys())]
@@ -333,3 +329,96 @@ class BookingRepo(IBookingRepo):
         )
 
         return [row.end_time for row in rows]
+
+    async def get_nearest_available(
+        self, floor: int, cso: int, booking_type: BookingType, from_time: datetime, limit: int = 5
+    ) -> list[BookingNearest]:
+        from_time = self._ceil_to_step(from_time)
+
+        slot_ids = await self._get_slot_ids(floor, cso, booking_type)
+        if not slot_ids:
+            return []
+
+        max_search_time = from_time + timedelta(days=7)
+
+        booking_table = BookingORM.__tablename__
+        booking_slots_table = BookingSlots.__tablename__
+
+        sql = text(f"""
+            WITH RECURSIVE time_slots AS (
+                SELECT 
+                    CAST(:from_time AS timestamptz) AS starts_at
+                UNION ALL
+                SELECT 
+                    starts_at + INTERVAL '15 minutes'
+                FROM time_slots
+                WHERE starts_at + INTERVAL '15 minutes' <= CAST(:max_search_time AS timestamptz)
+            ),
+            slot_availability AS (
+                SELECT
+                    ts.starts_at,
+                    ts.starts_at + INTERVAL '30 minutes' AS ends_at,
+                    s.id AS slot_id,
+                    s.place AS slot_place,
+                    s.floor AS floor,
+                    NOT EXISTS (
+                        SELECT 1
+                        FROM {booking_table} b
+                        JOIN {booking_slots_table} bs ON bs.booking_id = b.id
+                        WHERE bs.slot_id = s.id
+                        AND b.status != 'CANCELLED'
+                        AND b.starts_at < ts.starts_at + INTERVAL '30 minutes'
+                        AND b.ends_at > ts.starts_at
+                    ) AS is_available
+                FROM time_slots ts
+                JOIN {Slot.__tablename__} s
+                ON s.id = ANY(:slot_ids)
+            )
+            SELECT
+                starts_at,
+                ends_at,
+                slot_id,
+                slot_place,
+                floor
+            FROM slot_availability
+            WHERE is_available = true
+            ORDER BY starts_at
+            LIMIT :limit;
+        """)
+
+        result = await self.session.execute(
+            sql,
+            {
+                "from_time": from_time,
+                "max_search_time": max_search_time,
+                "slot_ids": slot_ids,
+                "limit": limit,
+            },
+        )
+
+        return [
+            {
+                "starts_at": row.starts_at,
+                "ends_at": row.ends_at,
+                "slot_id": row.slot_id,
+                "slot_place": row.slot_place,
+                "floor": row.floor,
+            }
+            for row in result
+        ]
+
+    async def cancel_all_by_slot(self, slot_id: UUID) -> int:
+        booking_ids_subq = (
+            select(BookingSlots.booking_id).where(BookingSlots.slot_id == slot_id).distinct()
+        )
+
+        stmt = (
+            update(BookingORM)
+            .where(BookingORM.id.in_(booking_ids_subq))
+            .where(BookingORM.status == BookingStatus.NEW)
+            .values(status=BookingStatus.CANCELLED)
+        )
+
+        res = await self.session.execute(stmt)
+        # важно: flush/commit сделает UoW
+        return int(res.rowcount or 0)

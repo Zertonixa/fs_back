@@ -1,9 +1,8 @@
 from abc import ABC, abstractmethod
 from uuid import UUID
 
+from src.apps.slots.schemas.dataclasses.slots import Slot, SlotCreate, SlotUpdate
 from src.core.db.models.slot import Type as SlotType
-
-from ..schemas.dataclasses.slots import Slot
 
 
 class ISlotRepo(ABC):
@@ -16,10 +15,10 @@ class ISlotRepo(ABC):
     async def get_by_id(self, slot_id: UUID) -> Slot | None: ...
 
     @abstractmethod
-    async def create(self, slot: Slot) -> Slot: ...
+    async def create(self, slot: SlotCreate) -> Slot: ...
 
     @abstractmethod
-    async def update(self, slot_id: UUID, slot: Slot) -> Slot | None: ...
+    async def update(self, slot_id: UUID, slot: SlotUpdate) -> Slot | None: ...
 
     @abstractmethod
     async def delete(self, slot_id: UUID) -> None: ...

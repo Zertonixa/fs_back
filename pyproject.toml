@@ -20,7 +20,11 @@ dependencies = [
     "sqlalchemy>=2.0.41",
     "uvicorn>=0.34.2",
     "psycopg2-binary",
-    "celery>=5.5.3"
+    "celery>=5.5.3",
+    "minio>=7.2.20",
+    "python-multipart>=0.0.22",
+    "aioboto3>=15.5.0",
+    "tenacity>=9.1.4",
 ]
 
 [tool.ruff]

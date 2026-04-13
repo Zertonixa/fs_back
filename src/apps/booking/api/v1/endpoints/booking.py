@@ -5,14 +5,14 @@ from fastapi import APIRouter, Depends, Query
 from starlette import status as http_status
 
 from src.apps.mappers.booking import dc_to_pydantic
-from src.core.dependencies.admin import require_admin
+from src.core.dependencies.admin import get_is_admin, require_admin
 from src.core.dependencies.user import get_current_telegram_id, get_current_user_id
 
 from ....di import get_booking_service
-from ....schemas.pydantic.booking import BookingCreate, BookingRead, BookingType
+from ....schemas.pydantic.booking import BookingCreate, BookingNearest, BookingRead, BookingType
 from ....services.booking import BookingService
 
-router = APIRouter(prefix="/bookings", dependencies=[Depends(get_current_user_id)])
+router = APIRouter(prefix="/bookings")
 
 
 @router.get("/me", status_code=http_status.HTTP_200_OK)
@@ -99,7 +99,7 @@ async def delete_booking(
     booking_id: UUID,
     booking: BookingService = Depends(get_booking_service),
     current_user_id: UUID = Depends(get_current_user_id),
-    is_admin: bool = Depends(require_admin),
+    is_admin: bool = Depends(get_is_admin),
 ) -> None:
     booking_deleted = await booking.delete_booking(booking_id, current_user_id, is_admin)
     return booking_deleted
@@ -110,19 +110,31 @@ async def cancel_booking(
     booking_ids: list[UUID],
     booking: BookingService = Depends(get_booking_service),
     current_user_id: UUID = Depends(get_current_user_id),
-    is_admin: bool = Depends(require_admin),
+    is_admin: bool = Depends(get_is_admin),
 ) -> list[BookingRead]:
-    booking_canceled = await booking.booking_cancel(
-        booking_ids, current_user_id, is_admin
-    )
+    booking_canceled = await booking.booking_cancel(booking_ids, current_user_id, is_admin)
     return booking_canceled
 
 
-@router.get("/user/{user_id}", status_code=http_status.HTTP_200_OK)
+@router.get(
+    "/user/{user_id}", status_code=http_status.HTTP_200_OK, dependencies=[Depends(require_admin)]
+)
 async def find_user_booking(
-    user_id: UUID,
-    booking: BookingService = Depends(get_booking_service),
-    admin=Depends(require_admin),
+    user_id: UUID, booking: BookingService = Depends(get_booking_service)
 ) -> list[BookingRead]:
     bookings = await booking.find_user(user_id)
     return [dc_to_pydantic(b) for b in bookings]
+
+
+@router.get("/nearest-available")
+async def get_nearest_available_times(
+    floor: int = Query(...),
+    cso: int = Query(...),
+    booking_type: BookingType = Query(...),
+    from_time: datetime | None = Query(None),
+    limit: int = Query(5, ge=1, le=20),
+    service: BookingService = Depends(get_booking_service),
+) -> list[BookingNearest]:
+    return await service.get_nearest_available(
+        floor=floor, cso=cso, booking_type=booking_type, from_time=from_time, limit=limit
+    )

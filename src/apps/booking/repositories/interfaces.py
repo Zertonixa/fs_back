@@ -6,7 +6,7 @@ from uuid import UUID
 
 from src.core.db.models.booking import BookingType
 
-from ..schemas.dataclasses.booking import Booking
+from ..schemas.dataclasses.booking import Booking, BookingNearest
 
 
 class IBookingRepo(ABC):
@@ -69,3 +69,11 @@ class IBookingRepo(ABC):
         start: datetime,
         end_date: datetime | None = None,
     ) -> list[datetime]: ...
+
+    @abstractmethod
+    async def get_nearest_available(
+        self, floor: int, cso: int, booking_type: BookingType, from_time: datetime, limit: int = 5
+    ) -> list[BookingNearest]: ...
+
+    @abstractmethod
+    async def cancel_all_by_slot(self, slot_id: UUID) -> int: ...

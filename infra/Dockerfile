@@ -11,23 +11,29 @@ RUN set -eux; \
     apt-get install -y --no-install-recommends gcc libpq-dev; \
     rm -rf /var/lib/apt/lists/*
 
-RUN pip install --no-cache-dir uv
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install uv
 
-COPY pyproject.toml .
-COPY uv.lock .
+COPY pyproject.toml ./
+COPY uv.lock ./
 
-RUN uv pip install --editable . --system
+ENV UV_HTTP_TIMEOUT=120
+ENV UV_HTTP_RETRIES=10
+
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --locked --no-dev
 
 # ========== FINAL ==========
 FROM python:3.12-slim
 
 WORKDIR /app
 
-COPY --from=builder /usr/local /usr/local
+COPY --from=builder /app/.venv /app/.venv
+ENV PATH="/app/.venv/bin:$PATH"
+
 COPY ./src ./src
 COPY ./config.toml ./config.toml
 COPY .env .env
-
 COPY ./alembic.ini ./alembic.ini
 COPY ./alembic ./alembic
 

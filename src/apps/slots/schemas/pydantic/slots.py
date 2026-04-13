@@ -29,11 +29,15 @@ class SlotCreate(BaseModel):
 class SlotUpdate(BaseModel):
     type: SlotType | None = None
     floor: int | None = None
+    row: int | None = None
     place: int | None = None
+    cso: int | None = None
     status: bool | None = None
 
 
 class SlotCell(BaseModel):
     id: UUID
     place: int
+    raw: int
+    floor: int
     is_available: bool

@@ -15,7 +15,7 @@ from src.apps.mappers.booking import create_to_dc
 from src.core.db.uow import UoW
 
 from ..repositories.interfaces import IBookingRepo
-from ..schemas.dataclasses.booking import Booking, BookingCreate, BookingType
+from ..schemas.dataclasses.booking import Booking, BookingCreate, BookingNearest, BookingType
 
 
 class BookingService:
@@ -196,11 +196,9 @@ class BookingService:
     async def booking_cancel(
         self, booking_ids: list[UUID], user_id: UUID, is_admin: bool = False
     ) -> list[Booking]:
-        
         if not booking_ids:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="No booking IDs provided"
+                status_code=status.HTTP_400_BAD_REQUEST, detail="No booking IDs provided"
             )
 
         cancelled_bookings = []
@@ -216,9 +214,9 @@ class BookingService:
                 ):
                     if task_id:
                         AsyncResult(task_id, app=celery).revoke(terminate=False)
- 
+
                 cancelled_bookings.append(booking)
-            
+
             await self.booking_repo.cancel(booking_ids)
 
         return cancelled_bookings
@@ -258,4 +256,30 @@ class BookingService:
     ) -> list[datetime]:
         return await self.booking_repo.get_available_ends(
             floor=floor, cso=cso, booking_type=booking_type, start=start, end_date=end_date
+        )
+
+    async def get_nearest_available(
+        self,
+        floor: int,
+        cso: int,
+        booking_type: BookingType,
+        from_time: datetime | None = None,
+        limit: int = 5,
+    ) -> list[BookingNearest]:
+        if from_time is None:
+            from_time = datetime.now(UTC)
+
+        if limit <= 0 or limit > 20:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Limit must be between 1 and 20"
+            )
+
+        if from_time.tzinfo is None:
+            from_time = from_time.replace(tzinfo=UTC)
+
+        if from_time < datetime.now(UTC) - timedelta(minutes=5):
+            from_time = datetime.now(UTC)
+
+        return await self.booking_repo.get_nearest_available(
+            floor=floor, cso=cso, booking_type=booking_type, from_time=from_time, limit=limit
         )

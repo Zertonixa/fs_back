@@ -31,3 +31,12 @@ class BookingCreate:
     floor: int
     ends_at: datetime
     slot_ids: list[UUID]
+
+
+@dataclass(slots=True)
+class BookingNearest:
+    starts_at: datetime
+    ends_at: datetime
+    slot_id: UUID
+    slot_place: int
+    floor: int

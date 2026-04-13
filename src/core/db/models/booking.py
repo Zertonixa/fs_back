@@ -39,13 +39,13 @@ class Booking(Base):
     complete_task_id: Mapped[str | None] = mapped_column(nullable=True)
 
     status: Mapped[BookingStatus] = mapped_column(
-        PgEnum(BookingStatus, name="booking_status", create_type=True),
+        PgEnum(BookingStatus, name="booking_status", create_type=False),
         default=BookingStatus.NEW,
         nullable=False,
     )
 
     type: Mapped[BookingType] = mapped_column(
-        PgEnum(BookingType, name="booking_type", create_type=True), nullable=False
+        PgEnum(BookingType, name="booking_type", create_type=False), nullable=False
     )
 
     starts_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

@@ -1,37 +1,43 @@
-"""
-Управление жизненным циклом приложения
-
-- Определяйте здесь то, что должно происходить до и после запуска приложения.
-- Инициализируйте ресурсы (Подключения к БД, Redis, S3, и тд.).
-- Правильно и чисто закрывайте подключения.
-
-Используйте `lifespan` аргумент объекта fastapi.FastAPI для конфигурации жизненного цикла приложения
-"""
-
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from src.core.logger import configure_logger, get_logger
+from src.apps.admin.events import AdminActionEvent
 
-# from src.core.db import init_db_connection
-# from src.repository.s3.s3 import init_s3_client
-# from src.core.redis import init_redis, close_redis  # если будешь юзать Redis
+# from src.core.events.types import SlotUpdatedEvent
+# from src.apps.booking.repositories.sql.booking import BookingRepo
+# from src.apps.booking.handlers import CancelBookingsOnSlotUpdated
+from src.apps.admin_history.handlers import AdminHistoryHandler
+from src.apps.admin_history.repositories.sql.admin_history import AdminHistoryRepo
+from src.core.dependencies import get_async_session
+from src.core.events.bus import EventBus
+from src.adapters.s3.service import S3Service
 
 
 @asynccontextmanager
-async def lifespan(_app: FastAPI):
-    # Инициализация логгирования
-    configure_logger()
-    logger = get_logger()
-    logger.info("App startup: initializing resources")
+async def lifespan(app: FastAPI):
+    bus = EventBus()
+    app.state.event_bus = bus
 
-    # Например: init_db_connection()
-    # Например: await init_redis()
-    # Например: await init_s3_client()
+    async def handle_admin_action(event: AdminActionEvent) -> None:
+        async for session in get_async_session():
+            repo = AdminHistoryRepo(session)
+            handler = AdminHistoryHandler(repo)
+            await handler.on_admin_action(event)
+            await session.commit()
 
-    yield  # <- здесь приложение начинает работать
+    bus.subscribe(AdminActionEvent, handle_admin_action)
 
-    logger.info("App shutdown: releasing resources")
+    s3_service = S3Service()
+    await s3_service.ensure_bucket_exists()
 
-    # Например: await close_redis()
+    # async def handle_slot_updated(event: SlotUpdatedEvent) -> None:
+    #     async for session in get_async_session():
+    #         repo = BookingRepo(session)
+    #         handler = CancelBookingsOnSlotUpdated(repo)
+    #         await handler.handle(event)
+    #         await session.commit()
+
+    # bus.subscribe(SlotUpdatedEvent, handle_slot_updated)
+
+    yield

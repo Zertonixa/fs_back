@@ -10,6 +10,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.core.db import Base
 
 if TYPE_CHECKING:
+    from .admin_history import AdminHistory
     from .booking import Booking
     from .booking_slot import BookingSlots
 
@@ -40,4 +41,8 @@ class Slot(Base):
 
     bookings: Mapped[list["Booking"]] = relationship(
         secondary="bookingslots", back_populates="slots", lazy="selectin"
+    )
+
+    admin_history: Mapped[list["AdminHistory"]] = relationship(
+        "AdminHistory", back_populates="slot", foreign_keys="AdminHistory.slot_id"
     )

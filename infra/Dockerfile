@@ -32,8 +32,6 @@ COPY --from=builder /app/.venv /app/.venv
 ENV PATH="/app/.venv/bin:$PATH"
 
 COPY ./src ./src
-COPY ./config.toml ./config.toml
-COPY .env .env
 COPY ./alembic.ini ./alembic.ini
 COPY ./alembic ./alembic
 

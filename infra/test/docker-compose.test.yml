@@ -1,0 +1,61 @@
+services:
+  tests:
+    build:
+      context: ../..
+      dockerfile: infra/Dockerfile
+    env_file:
+      - ../../.env.test
+    volumes:
+      - ../../src:/app/src
+      - ../../tests:/app/tests
+      - ../../alembic:/app/alembic
+      - ../../alembic.ini:/app/alembic.ini
+      - ../../pytest.ini:/app/pytest.ini
+      - ../../.env.test:/app/.env
+    depends_on:
+      postgres_test:
+        condition: service_healthy
+      redis_test:
+        condition: service_started
+      minio_test:
+        condition: service_started
+    command: >
+      sh -lc "alembic upgrade head &&
+              pytest tests -v"
+
+  postgres_test:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: fs_back_test
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d fs_back_test"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - pg_test_data:/var/lib/postgresql/data
+
+  redis_test:
+    image: redis:7
+    ports:
+      - "6380:6379"
+
+  minio_test:
+    image: minio/minio
+    command: server /data --console-address ":9001"
+    ports:
+      - "9010:9000"
+      - "9011:9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    volumes:
+      - minio_test_data:/data
+
+volumes:
+  pg_test_data:
+  minio_test_data:

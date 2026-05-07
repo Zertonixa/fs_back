@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+
 from datetime import UTC, datetime
 from pathlib import Path
 from uuid import uuid4
@@ -53,7 +54,6 @@ class S3Service:
 
             url = url.replace(settings.s3.endpoint, settings.s3.public_url)
             return url
-
 
 class IS3Service(ABC):
     @abstractmethod

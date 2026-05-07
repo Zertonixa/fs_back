@@ -275,7 +275,7 @@ class RedisCache(RedisCommon):
 
 class Config(BaseSettings):
     model_config = SettingsConfigDict(
-        extra="ignore", env_file=ENV_PATH, toml_file=TOML_SETTINGS_PATH
+        extra="ignore", env_file=ENV_PATH, env_nested_delimiter="__", toml_file=TOML_SETTINGS_PATH
     )
 
     app: App = App()

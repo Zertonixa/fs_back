@@ -3,24 +3,43 @@ FROM python:3.12-slim AS builder
 
 WORKDIR /app
 
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends gcc libpq-dev && \
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV UV_HTTP_TIMEOUT=120
+ENV UV_HTTP_RETRIES=10
+ENV UV_LINK_MODE=copy
+
+RUN set -eux; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends gcc libpq-dev; \
     rm -rf /var/lib/apt/lists/*
 
-RUN pip install --no-cache-dir uv
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install --no-cache-dir uv
 
-COPY pyproject.toml .
-COPY uv.lock .
+COPY pyproject.toml ./
+COPY uv.lock ./
 
-RUN uv pip install --editable . --system
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --locked --no-dev
 
 # ========== FINAL ==========
 FROM python:3.12-slim
 
 WORKDIR /app
 
-COPY --from=builder /usr/local /usr/local
-COPY ./src ./src
-COPY .env .env
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV VIRTUAL_ENV=/app/.venv
+ENV PATH="/app/.venv/bin:$PATH"
 
-CMD ["python", "-m", "src.service.main"]
+COPY --from=builder /app/.venv /app/.venv
+
+COPY ./src ./src
+COPY ./alembic.ini ./alembic.ini
+COPY ./alembic ./alembic
+
+COPY infra/entrypoint.sh ./entrypoint.sh
+RUN chmod +x ./entrypoint.sh
+
+CMD ["./entrypoint.sh"]

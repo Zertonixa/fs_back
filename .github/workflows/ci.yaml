@@ -1,46 +1,52 @@
-# Следует располагать CI/CD пайплайны в этой директории. Ниже - пример.
-name: Lint & Format
+name: CI
 
 on:
   push:
-    branches: [dev]
+    branches: [dev, main]
+  pull_request:
+    branches: [dev, main]
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  lint:
+  backend-ci:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
-      - name: Install Ruff
-        run: pip install ruff
-
-      - name: Run Ruff Format
-        run: ruff format .
-
-      - name: Fix import order with Ruff
-        id: fix
+      - name: Install uv
         run: |
-          ruff check --select I --fix .
-          if [[ -n "$(git status --porcelain)" ]]; then
-            echo "changed=true" >> "$GITHUB_OUTPUT"
-          fi
+          python -m pip install --upgrade pip
+          pip install uv
 
-      - name: Commit formatted code
-        if: steps.fix.outputs.changed == 'true'
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          git commit -m "ci: auto-format with ruff"
-          git push
+      - name: Install backend dependencies
+        run: uv sync --locked
+
+      - name: Check formatting with Ruff
+        run: uv run ruff format --check .
+
+      - name: Run Ruff lint
+        run: uv run ruff check .
+
+      - name: Prepare test environment
+        run: cp .env.test .env
+
+      - name: Run tests with test infrastructure
+        run: >
+          docker compose -f infra/test/docker-compose.test.yml
+          up --build --abort-on-container-exit --exit-code-from tests tests
+
+      - name: Cleanup test infrastructure
+        if: always()
+        run: docker compose -f infra/test/docker-compose.test.yml down -v --remove-orphans
+
+      - name: Build backend Docker image
+        run: docker build -f infra/Dockerfile -t backend-ci:${{ github.sha }} .

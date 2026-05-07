@@ -13,7 +13,6 @@ from logging import Logger
 
 from src.core.config import cfg
 
-
 logger: Logger = logging.getLogger("app")
 
 
@@ -29,8 +28,7 @@ def configure_logger() -> None:
     level = allowed_levels.get(log_level, logging.INFO)
 
     logging.basicConfig(
-        level=level,
-        format="%(asctime)s | %(levelname)s | %(filename)s:%(lineno)d | %(message)s",
+        level=level, format="%(asctime)s | %(levelname)s | %(filename)s:%(lineno)d | %(message)s"
     )
 
     logger.setLevel(level)

@@ -3,11 +3,14 @@
 и fastapi.Request.app.state..., то предлагаю следующую реализацию
 контейнера зависимостей
 """
+
 from dataclasses import dataclass
-from src.core.ports.storage import FileStoragePort
+
+from src.core.ports.broker import TaskBrokerPort
 from src.core.ports.cache import CachePort
 from src.core.ports.pubsub import PubSubPort
-from src.core.ports.broker import TaskBrokerPort
+from src.core.ports.storage import FileStoragePort
+
 
 @dataclass(slots=True)
 class Container:
@@ -16,11 +19,9 @@ class Container:
     pubsub: PubSubPort
     broker: TaskBrokerPort
 
+
 async def build_container(
-        storage: FileStoragePort,
-        cache: CachePort,
-        pubsub: PubSubPort,
-        broker: TaskBrokerPort
+    storage: FileStoragePort, cache: CachePort, pubsub: PubSubPort, broker: TaskBrokerPort
 ) -> Container:
     """
     Необходимо прописать логику инициализации сервисов из входящих параметров.
@@ -31,6 +32,7 @@ async def build_container(
     :return:
     """
     return Container(storage=storage, cache=cache, pubsub=pubsub, broker=broker)
+
 
 async def shutdown_container(container: Container):
     await container.pubsub.close()

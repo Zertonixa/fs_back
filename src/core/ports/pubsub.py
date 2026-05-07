@@ -1,6 +1,8 @@
-from typing import Protocol, Callable, Awaitable
+from collections.abc import Awaitable, Callable
+from typing import Protocol
 
 MessageHandler = Callable[[str, bytes], Awaitable[None]]
+
 
 class PubSubPort(Protocol):
     async def publish(self, channel: str, data: bytes) -> None: ...

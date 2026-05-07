@@ -54,6 +54,7 @@ class S3Service:
             url = url.replace(settings.s3.endpoint, settings.s3.public_url)
             return url
 
+
 class IS3Service(ABC):
     @abstractmethod
     async def ensure_bucket_exists(self) -> None: ...

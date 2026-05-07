@@ -1,13 +1,8 @@
 name: CD
 
 on:
-  workflow_run:
-    workflows: ["CI"]
-    types:
-      - completed
-    branches:
-      - main
-
+  push:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -18,35 +13,20 @@ jobs:
   build-and-push:
     runs-on: ubuntu-latest
 
-    if: >
-      github.event_name == 'workflow_dispatch' ||
-      (
-        github.event.workflow_run.conclusion == 'success' &&
-        github.event.workflow_run.head_branch == 'main'
-      )
-
     env:
-      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
-      DOCKERHUB_REPOSITORY: ${{ secrets.DOCKERHUB_REPOSITORY }}
-      IMAGE_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+      IMAGE_SHA: ${{ github.sha }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
-      - name: Set image names
+      - name: Set GHCR image name
         run: |
           echo "GHCR_IMAGE=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
 
-          if [ -n "$DOCKERHUB_REPOSITORY" ]; then
-            echo "DOCKERHUB_IMAGE=${DOCKERHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
-          elif [ -n "$DOCKERHUB_USERNAME" ]; then
-            repo_name="${GITHUB_REPOSITORY#*/}"
-            echo "DOCKERHUB_IMAGE=${DOCKERHUB_USERNAME,,}/${repo_name,,}" >> "$GITHUB_ENV"
-          fi
+      - name: Show image name
+        run: |
+          echo "Publishing image: $GHCR_IMAGE"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -67,25 +47,5 @@ jobs:
           tags: |
             ${{ env.GHCR_IMAGE }}:latest
             ${{ env.GHCR_IMAGE }}:${{ env.IMAGE_SHA }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Login to Docker Hub
-        if: env.DOCKERHUB_USERNAME != '' && env.DOCKERHUB_TOKEN != ''
-        uses: docker/login-action@v3
-        with:
-          username: ${{ env.DOCKERHUB_USERNAME }}
-          password: ${{ env.DOCKERHUB_TOKEN }}
-
-      - name: Build and push Docker Hub image
-        if: env.DOCKERHUB_USERNAME != '' && env.DOCKERHUB_TOKEN != '' && env.DOCKERHUB_IMAGE != ''
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: infra/Dockerfile
-          push: true
-          tags: |
-            ${{ env.DOCKERHUB_IMAGE }}:latest
-            ${{ env.DOCKERHUB_IMAGE }}:${{ env.IMAGE_SHA }}
           cache-from: type=gha
           cache-to: type=gha,mode=max

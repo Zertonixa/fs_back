@@ -37,6 +37,6 @@ class Complaint(Base):
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
 
-    files: Mapped[list["ComplaintFile"]] = relationship(
+    files: Mapped[list[ComplaintFile]] = relationship(
         back_populates="complaint", cascade="all, delete-orphan"
     )

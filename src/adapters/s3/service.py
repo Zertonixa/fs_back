@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-
 from datetime import UTC, datetime
 from pathlib import Path
 from uuid import uuid4

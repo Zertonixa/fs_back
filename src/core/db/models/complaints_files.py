@@ -35,4 +35,4 @@ class ComplaintFile(Base):
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
 
-    complaint: Mapped["Complaint"] = relationship("Complaint", back_populates="files")
+    complaint: Mapped[Complaint] = relationship("Complaint", back_populates="files")

@@ -7,7 +7,6 @@ from src.apps.admin.events import AdminActionEvent
 
 # from src.core.events.types import SlotUpdatedEvent
 # from src.apps.booking.repositories.sql.booking import BookingRepo
-# from src.apps.booking.handlers import CancelBookingsOnSlotUpdated
 from src.apps.admin_history.handlers import AdminHistoryHandler
 from src.apps.admin_history.repositories.sql.admin_history import AdminHistoryRepo
 from src.core.dependencies import get_async_session

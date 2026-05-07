@@ -1,11 +1,6 @@
-from src.apps.complaints.schemas.dataclasses.complaints import (
-    Complaint as ComplaintDC,
-    ComplaintFile as ComplaintFileDC,
-)
-from src.apps.complaints.schemas.pydantic.complaints import (
-    ComplaintFileRead,
-    ComplaintRead,
-)
+from src.apps.complaints.schemas.dataclasses.complaints import Complaint as ComplaintDC
+from src.apps.complaints.schemas.dataclasses.complaints import ComplaintFile as ComplaintFileDC
+from src.apps.complaints.schemas.pydantic.complaints import ComplaintFileRead, ComplaintRead
 from src.core.db.models.complaints import Complaint as ComplaintORM
 from src.core.db.models.complaints_files import ComplaintFile as ComplaintFileORM
 
@@ -34,7 +29,7 @@ def orm_to_dc(obj: ComplaintORM) -> ComplaintDC:
     )
 
 
-def dc_file_to_pydantic(dc: ComplaintFileDC) -> ComplaintFileRead:
+def dc_file_to_pydantic(dc: ComplaintFileDC, download_url: str | None = None) -> ComplaintFileRead:
     return ComplaintFileRead(
         id=dc.id,
         complaint_id=dc.complaint_id,
@@ -44,7 +39,9 @@ def dc_file_to_pydantic(dc: ComplaintFileDC) -> ComplaintFileRead:
         content_type=dc.content_type,
         size=dc.size,
         created_at=dc.created_at,
-        download_url=getattr(dc, "download_url", None),
+        download_url=(
+            download_url if download_url is not None else getattr(dc, "download_url", None)
+        ),
     )
 
 

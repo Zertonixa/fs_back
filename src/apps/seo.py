@@ -1,4 +1,4 @@
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, Response, status
 from fastapi.responses import PlainTextResponse
@@ -7,28 +7,16 @@ seo_router = APIRouter()
 
 SITE_URL = "http://localhost:3000"
 
-INDEXABLE_ROUTES: list[str] = [
-    "/",
-    "/welcome",
-    "/booking",
-    "/login",
-]
+INDEXABLE_ROUTES: list[str] = ["/", "/welcome", "/booking", "/login"]
 
-DISALLOW_ROUTES: list[str] = [
-    "/admin",
-    "/ban",
-]
+DISALLOW_ROUTES: list[str] = ["/admin", "/ban"]
 
 
 @seo_router.get("/robots.txt", response_class=PlainTextResponse, include_in_schema=False)
 async def robots_txt() -> str:
     disallow_lines = "\n".join(f"Disallow: {route}" for route in DISALLOW_ROUTES)
 
-    return (
-        "User-agent: *\n"
-        f"{disallow_lines}\n\n"
-        f"Sitemap: {SITE_URL}/sitemap.xml\n"
-    )
+    return f"User-agent: *\n{disallow_lines}\n\nSitemap: {SITE_URL}/sitemap.xml\n"
 
 
 @seo_router.get("/sitemap.xml", include_in_schema=False)

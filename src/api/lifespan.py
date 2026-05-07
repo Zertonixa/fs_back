@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
+from src.adapters.s3.service import S3Service
 from src.apps.admin.events import AdminActionEvent
 
 # from src.core.events.types import SlotUpdatedEvent
@@ -11,7 +12,6 @@ from src.apps.admin_history.handlers import AdminHistoryHandler
 from src.apps.admin_history.repositories.sql.admin_history import AdminHistoryRepo
 from src.core.dependencies import get_async_session
 from src.core.events.bus import EventBus
-from src.adapters.s3.service import S3Service
 
 
 @asynccontextmanager

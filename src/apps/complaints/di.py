@@ -1,8 +1,8 @@
 from fastapi import Depends
 
+from src.adapters.s3.service import S3Service
 from src.apps.complaints.repositories.sql.complaints import ComplaintRepo
 from src.apps.complaints.services.complaints import ComplaintService
-from src.adapters.s3.service import S3Service
 from src.core.db.uow import UoW
 from src.core.dependencies.db import get_uow
 

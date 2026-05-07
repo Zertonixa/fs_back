@@ -5,10 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from src.apps.complaints.repositories.interfaces import IComplaintRepo
-from src.apps.complaints.schemas.dataclasses.complaints import (
-    Complaint,
-    ComplaintFile,
-)
+from src.apps.complaints.schemas.dataclasses.complaints import Complaint, ComplaintFile
 from src.apps.mappers.complaints import orm_file_to_dc, orm_to_dc
 from src.core.db.models.complaints import Complaint as ComplaintORM
 from src.core.db.models.complaints_files import ComplaintFile as ComplaintFileORM
@@ -111,11 +108,7 @@ class ComplaintRepo(IComplaintRepo):
         rows = result.scalars().all()
         return [orm_file_to_dc(obj) for obj in rows]
 
-    async def update_status(
-        self,
-        complaint_id: UUID,
-        status: ComplaintStatus,
-    ) -> Complaint | None:
+    async def update_status(self, complaint_id: UUID, status: ComplaintStatus) -> Complaint | None:
         obj = await self.session.get(ComplaintORM, complaint_id)
         if obj is None:
             return None
@@ -134,10 +127,7 @@ class ComplaintRepo(IComplaintRepo):
         )
 
     async def update(
-        self,
-        complaint_id: UUID,
-        text: str,
-        status: ComplaintStatus,
+        self, complaint_id: UUID, text: str, status: ComplaintStatus
     ) -> Complaint | None:
         obj = await self.session.get(ComplaintORM, complaint_id)
         if obj is None:

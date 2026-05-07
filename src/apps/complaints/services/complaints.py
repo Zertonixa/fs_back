@@ -1,4 +1,4 @@
-from typing import Sequence
+from collections.abc import Sequence
 from uuid import UUID
 
 from fastapi import HTTPException, UploadFile, status
@@ -15,12 +15,7 @@ from src.core.enums.complaints import ComplaintStatus
 
 
 class ComplaintService:
-    def __init__(
-        self,
-        complaint_repo: IComplaintRepo,
-        s3_service: IS3Service,
-        uow: UoW,
-    ):
+    def __init__(self, complaint_repo: IComplaintRepo, s3_service: IS3Service, uow: UoW):
         self.complaint_repo = complaint_repo
         self.s3_service = s3_service
         self.uow = uow
@@ -28,10 +23,7 @@ class ComplaintService:
     async def _get_or_404(self, complaint_id: UUID) -> Complaint:
         complaint = await self.complaint_repo.get_by_id(complaint_id)
         if complaint is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Complaint not found",
-            )
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Complaint not found")
         return complaint
 
     async def create(
@@ -42,8 +34,7 @@ class ComplaintService:
     ) -> Complaint:
         if not complaint_in.text.strip():
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Complaint text must not be empty",
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Complaint text must not be empty"
             )
 
         files = files or []
@@ -52,9 +43,7 @@ class ComplaintService:
         async with self.uow.transaction():
             created = await self.complaint_repo.create(
                 Complaint(
-                    user_id=user_id,
-                    text=complaint_in.text.strip(),
-                    status=ComplaintStatus.SENT,
+                    user_id=user_id, text=complaint_in.text.strip(), status=ComplaintStatus.SENT
                 )
             )
 
@@ -65,14 +54,11 @@ class ComplaintService:
                         continue
 
                     object_key = self.s3_service.build_object_key(
-                        complaint_id=str(created.id),
-                        filename=file.filename or "file",
+                        complaint_id=str(created.id), filename=file.filename or "file"
                     )
 
                     await self.s3_service.upload_file(
-                        data=content,
-                        object_key=object_key,
-                        content_type=file.content_type,
+                        data=content, object_key=object_key, content_type=file.content_type
                     )
                     uploaded_keys.append(object_key)
 
@@ -87,7 +73,7 @@ class ComplaintService:
                         )
                     )
 
-            except Exception:
+            except Exception as exc:
                 for key in uploaded_keys:
                     try:
                         await self.s3_service.delete_file(key)
@@ -97,37 +83,25 @@ class ComplaintService:
                 raise HTTPException(
                     status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                     detail="Complaint creation failed while uploading files",
-                )
+                ) from exc
 
         return await self._get_or_404(created.id)
 
     async def get_by_id(
-        self,
-        complaint_id: UUID,
-        user_id: UUID,
-        is_admin: bool = False,
+        self, complaint_id: UUID, user_id: UUID, is_admin: bool = False
     ) -> Complaint:
         complaint = await self._get_or_404(complaint_id)
 
         if complaint.user_id != user_id and not is_admin:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="No access",
-            )
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="No access")
 
         for file_dc in complaint.files:
-            file_dc.download_url = await self.s3_service.generate_download_url(
-                file_dc.object_key
-            )
+            file_dc.download_url = await self.s3_service.generate_download_url(file_dc.object_key)
 
         return complaint
 
     async def update(
-        self,
-        complaint_id: UUID,
-        text: str,
-        user_id: UUID,
-        is_admin: bool = False,
+        self, complaint_id: UUID, text: str, user_id: UUID, is_admin: bool = False
     ) -> Complaint:
         complaint = await self._get_or_404(complaint_id)
 
@@ -139,43 +113,29 @@ class ComplaintService:
 
         if complaint.status == ComplaintStatus.SOLVED:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Solved complaint cannot be updated",
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Solved complaint cannot be updated"
             )
 
         cleaned_text = text.strip()
         if not cleaned_text:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Complaint text must not be empty",
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Complaint text must not be empty"
             )
 
         async with self.uow.transaction():
             updated = await self.complaint_repo.update(
-                complaint_id=complaint_id,
-                text=cleaned_text,
-                status=ComplaintStatus.UPDATED,
+                complaint_id=complaint_id, text=cleaned_text, status=ComplaintStatus.UPDATED
             )
 
         if updated is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Complaint not found",
-            )
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Complaint not found")
 
         for file_dc in updated.files:
-            file_dc.download_url = await self.s3_service.generate_download_url(
-                file_dc.object_key
-            )
+            file_dc.download_url = await self.s3_service.generate_download_url(file_dc.object_key)
 
         return updated
 
-    async def delete(
-        self,
-        complaint_id: UUID,
-        user_id: UUID,
-        is_admin: bool = False,
-    ) -> None:
+    async def delete(self, complaint_id: UUID, user_id: UUID, is_admin: bool = False) -> None:
         complaint = await self._get_or_404(complaint_id)
 
         if complaint.user_id != user_id and not is_admin:
@@ -198,8 +158,7 @@ class ComplaintService:
 
             if not deleted:
                 raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail="Complaint not found",
+                    status_code=status.HTTP_404_NOT_FOUND, detail="Complaint not found"
                 )
 
         for key in file_keys:
@@ -209,18 +168,12 @@ class ComplaintService:
                 pass
 
     async def get_files_with_urls(
-        self,
-        complaint_id: UUID,
-        user_id: UUID,
-        is_admin: bool = False,
+        self, complaint_id: UUID, user_id: UUID, is_admin: bool = False
     ) -> list[tuple[ComplaintFile, str]]:
         complaint = await self._get_or_404(complaint_id)
 
         if complaint.user_id != user_id and not is_admin:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="No access",
-            )
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="No access")
 
         result: list[tuple[ComplaintFile, str]] = []
         for file_dc in complaint.files:
@@ -238,11 +191,7 @@ class ComplaintService:
         search_text: str | None = None,
     ) -> list[Complaint]:
         complaints = await self.complaint_repo.get_all(
-            limit=limit,
-            offset=offset,
-            status=status,
-            user_id=user_id,
-            search_text=search_text,
+            limit=limit, offset=offset, status=status, user_id=user_id, search_text=search_text
         )
 
         for complaint in complaints:
@@ -252,14 +201,9 @@ class ComplaintService:
                 )
 
         return complaints
-    
 
     async def update_status(
-        self,
-        complaint_id: UUID,
-        new_status: ComplaintStatus,
-        user_id: UUID,
-        is_admin: bool = False,
+        self, complaint_id: UUID, new_status: ComplaintStatus, user_id: UUID, is_admin: bool = False
     ) -> Complaint:
         complaint = await self._get_or_404(complaint_id)
 
@@ -273,9 +217,6 @@ class ComplaintService:
             updated = await self.complaint_repo.update_status(complaint_id, new_status)
 
         if updated is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Complaint not found",
-            )
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Complaint not found")
 
         return await self._get_or_404(updated.id)

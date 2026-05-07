@@ -99,8 +99,10 @@ class RedisNotify(BaseModel):
     default_ttl_seconds: int = Field(default=3600, description="Fallback TTL for set()")
     negative_ttl_seconds: int = Field(default=60, description="TTL for negative cache entries")
 
+
 class WeatherApi(BaseModel):
-    weather_api_key: str = Field(default="your_api_key", )
+    weather_api_key: str = Field(default="your_api_key")
+
 
 class S3(BaseModel):
     endpoint: str = Field(default="http://minio:9000", description="URL эндпоинта MinIO/S3.")

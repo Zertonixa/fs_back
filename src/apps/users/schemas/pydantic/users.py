@@ -1,9 +1,7 @@
 from datetime import datetime
-from math import ceil
-from typing import Self
 from uuid import UUID
 
-from pydantic import BaseModel, computed_field
+from pydantic import BaseModel
 
 
 class User(BaseModel):

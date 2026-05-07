@@ -263,9 +263,6 @@ class BookingRepo(IBookingRepo):
         max_end_time = start + max_duration
 
         if end_date:
-            end_date_start = datetime.combine(end_date.date(), datetime.min.time()).replace(
-                tzinfo=start.tzinfo
-            )
             end_date_end = datetime.combine(end_date.date(), datetime.min.time()).replace(
                 hour=23, minute=30, second=0, tzinfo=start.tzinfo
             )

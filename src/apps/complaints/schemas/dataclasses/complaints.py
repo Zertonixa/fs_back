@@ -1,7 +1,9 @@
 from dataclasses import dataclass, field
 from datetime import datetime
-from src.core.enums.complaints import ComplaintStatus
 from uuid import UUID
+
+from src.core.enums.complaints import ComplaintStatus
+
 
 @dataclass
 class ComplaintFile:

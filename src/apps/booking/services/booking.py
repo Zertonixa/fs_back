@@ -71,7 +71,10 @@ class BookingService:
             if (ends_at - starts_at) > max_duration:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=f"Maximum booking duration for washing is {max_duration.total_seconds() / 3600} hours",
+                    detail=(
+                        "Maximum booking duration for washing is "
+                        f"{max_duration.total_seconds() / 3600} hours"
+                    ),
                 )
 
         elif booking_dc.type == "DRYING":
@@ -151,7 +154,7 @@ class BookingService:
 
             await self.booking_repo.save(booking)
 
-        except Exception:
+        except Exception as exc:
             if hasattr(booking, "start_reminder_task_id") and booking.start_reminder_task_id:
                 AsyncResult(booking.start_reminder_task_id, app=celery).revoke(terminate=False)
             if hasattr(booking, "end_reminder_task_id") and booking.end_reminder_task_id:
@@ -161,7 +164,7 @@ class BookingService:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Booking created but notification scheduling failed",
-            )
+            ) from exc
 
     async def get_by_id(self, booking_id: UUID) -> Booking | None:
         return await self._get_or_404(booking_id)

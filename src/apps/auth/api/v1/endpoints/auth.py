@@ -22,7 +22,7 @@ async def login(
     auth: AuthService = Depends(get_auth_service),
 ) -> TokenOut:
     access_token, refresh_token, _user = await auth.login_with_telegram(
-        payload.initData,
+        payload.init_data,
         user_agent=request.headers.get("user-agent"),
         ip_address=request.client.host if request.client else None,
     )

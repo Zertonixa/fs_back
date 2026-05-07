@@ -2,10 +2,9 @@ import uuid
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
-from fastapi import HTTPException, Request, status, Depends
-from fastapi.security import HTTPBearer, APIKeyCookie
+from fastapi import Depends, HTTPException, status
+from fastapi.security import APIKeyCookie, HTTPBearer
 from jose import jwt
-from jose.exceptions import JWTError
 
 from src.core.config.config import settings
 
@@ -96,23 +95,19 @@ def get_jti_from_payload(payload: dict[str, Any]) -> uuid.UUID:
     except ValueError as e:
         raise ValueError("invalid 'jti' type") from e
 
+
 async def get_access_payload(token: str | None = Depends(access_cookie_scheme)) -> dict:
     if not token:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Not authenticated",
-        )
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
 
     payload = decode_token(token)
     validate_token_type(payload, "access")
     return payload
 
+
 async def get_refresh_payload(token: str | None = Depends(refresh_cookie_scheme)) -> dict:
     if not token:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="No refresh token",
-        )
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="No refresh token")
 
     payload = decode_token(token)
     validate_token_type(payload, "refresh")

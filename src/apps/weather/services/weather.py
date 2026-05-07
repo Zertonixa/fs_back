@@ -3,11 +3,7 @@ from src.adapters.weather.weather import WeatherAdapter
 
 
 class WeatherService:
-    def __init__(
-        self,
-        ip_adapter: IpAdapter,
-        weather_adapter: WeatherAdapter,
-    ) -> None:
+    def __init__(self, ip_adapter: IpAdapter, weather_adapter: WeatherAdapter) -> None:
         self.ip_adapter = ip_adapter
         self.weather_adapter = weather_adapter
 
@@ -16,8 +12,7 @@ class WeatherService:
         location = self.ip_adapter.normalize(ip_data)
 
         weather_data = await self.weather_adapter.fetch_weather(
-            lat=location["lat"],
-            lon=location["lon"],
+            lat=location["lat"], lon=location["lon"]
         )
         weather = self.weather_adapter.normalize(weather_data)
 

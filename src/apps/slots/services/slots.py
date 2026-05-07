@@ -99,7 +99,7 @@ class SlotService:
             if updated is None:
                 raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="slot not found")
 
-            cancelled = await self.booking_repo.cancel_all_by_slot(slot_id)
+            await self.booking_repo.cancel_all_by_slot(slot_id)
 
             self.uow.add_event(
                 AdminActionEvent(

@@ -1,10 +1,7 @@
 from abc import ABC, abstractmethod
 from uuid import UUID
 
-from src.apps.complaints.schemas.dataclasses.complaints import (
-    Complaint,
-    ComplaintFile,
-)
+from src.apps.complaints.schemas.dataclasses.complaints import Complaint, ComplaintFile
 from src.core.enums.complaints import ComplaintStatus
 
 
@@ -26,17 +23,12 @@ class IComplaintRepo(ABC):
 
     @abstractmethod
     async def update_status(
-        self,
-        complaint_id: UUID,
-        status: ComplaintStatus,
+        self, complaint_id: UUID, status: ComplaintStatus
     ) -> Complaint | None: ...
 
     @abstractmethod
     async def update(
-        self,
-        complaint_id: UUID,
-        text: str,
-        status: ComplaintStatus,
+        self, complaint_id: UUID, text: str, status: ComplaintStatus
     ) -> Complaint | None: ...
 
     @abstractmethod
